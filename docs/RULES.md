@@ -28,6 +28,16 @@ Reason: Python's short-circuit condition evaluates and tests the outer expressio
 
 Check: nested convergence, effectful truthiness (`__bool__`), evaluation order, negative alternatives, comments, multiline strings, Unicode, and malformed input.
 
+## `guard-clause`
+
+Trigger: an `if` has a plain `else` whose final direct statement is `return`, `raise`, `break`, or `continue`, while the consequence does not directly terminate. Both suites are multiline and the condition occupies one physical line. Shared conservative exclusions still apply.
+
+Action: invert the condition with `not (condition)`, place the exiting suite first, and lift the normal suite after the guard. Do not invert comparison operators: NaN, overloaded comparisons, and non-Boolean comparison results make that a different operation. An exiting consequence is handled by `redundant-else` instead, so the rules do not alternate branch order.
+
+Reason: the original condition is truth-tested once; exactly one original suite executes. The exit prevents the lifted normal suite from executing on the false path. Python branch suites do not create binding scopes, and neither suite crosses its enclosing loop, function, exception handler, or context manager.
+
+Check: direct return/raise, loop break/continue, effectful truthiness and exceptions, NaN comparison, `finally` effects, rule composition, comment/inline-suite skips, and idempotence. Each application removes an alternative, so the existing decreasing structural measure still holds.
+
 ## Engine guarantees and limits
 
 One deterministic preorder-selected edit is applied per pass, followed by a full reparse. Every current rule removes one conditional or alternative, giving a decreasing structural measure. After 1,024 edits the engine fails rather than writing a partial result. It also refuses files over 2 MiB. Two runs must produce identical source; tests enforce this.

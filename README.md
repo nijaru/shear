@@ -2,7 +2,7 @@
 
 A structural formatter: deterministically simplify code structure, not whitespace.
 
-Shear runs locally without a model or API key. Humans and coding agents invoke it after editing code. The product is cross-language; the current Rust/tree-sitter prototype supports **Python only**, with two conservative rules: remove redundant `else` after an explicit exit, and merge nested conditions without alternatives.
+Shear runs locally without a model or API key. Humans and coding agents invoke it after editing code. The product is cross-language; the current Rust/tree-sitter prototype supports **Python only**, with three conservative rules: remove redundant `else` after an explicit exit, normalize exiting alternatives into guards, and merge nested conditions without alternatives.
 
 ## Build and run
 
@@ -40,7 +40,9 @@ This is an early prototype, not a general refactoring engine. It skips uncertain
 
 Writes preserve permissions and check for stale bytes before replacement. Stop concurrent writers; the comparison and replacement are not a filesystem transaction. A filesystem failure can leave an already-written portion of a multi-file batch. Use a version-controlled working tree.
 
-No real-project showcase has qualified yet. No novelty or universal readability claim is made for these initial rules; they overlap existing lint fixes.
+No real-project showcase has qualified yet. The goal is a coherent cleanup pass for humans and agents, not exclusive rules; overlap with existing autofixers is expected. No universal readability or measured agent-time-saving claim is made.
+
+Source is public but has no project license yet. Dependencies retain their own licenses.
 
 ## Development
 
@@ -52,6 +54,7 @@ cargo clippy --all-targets --all-features -- -D warnings
 
 - [Architecture and roadmap](docs/HANDOFF.md)
 - [Rule safety contracts](docs/RULES.md)
+- [Dependency and Ruff integration strategy](docs/DEPENDENCIES.md)
 - [Real-example selection](docs/EXAMPLE_SELECTION.md)
 - [Video workflow](docs/DEMO_VIDEO.md)
 - [Build evidence and limitations](docs/BUILD_LOG.md)

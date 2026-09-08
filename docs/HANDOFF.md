@@ -8,6 +8,16 @@ A local, deterministic CLI that humans and coding agents run like a formatter. I
 
 Rust is the implementation language. Tree-sitter supplies cross-language syntax trees and byte ranges. Source-language support is independent of the host language. Scope/effects/types are not provided by tree-sitter: each rule must establish its own safety conditions, optionally using language-native semantic tooling later.
 
+## Product value and scope
+
+The goal is useful structural cleanup per human/agent invocation, not exclusive ownership of every rewrite. Overlap with Ruff, Clippy, ESLint, or other autofixers is acceptable. Do not gate progress on finding a novel rule or claim that those tools lack semantic analysis.
+
+**Today:** build one coherent Python control-flow normalization pass: flattening, guards, and redundant paths; preserve behavior/comments, converge, and demonstrate a useful combined result in real code. Keep the current dependencies and use Ruff externally for comparison and formatter compatibility. Do not embed its full engine or expand languages merely for a feature count.
+
+**Long term:** reduce recurring manual and agent cleanup across languages. Develop shared edit/convergence mechanics and language-specific syntax, binding, termination, effect, and type facts as needed. Tree-sitter is the common syntax entry point, not a restriction against richer backends. Agent time savings and fewer iterations are hypotheses to measure, not current performance claims. Naming, architecture, and intent remain human/agent responsibilities.
+
+Shear's source is public but has no project license yet. Do not choose one or call the project open source without the user's decision. Preserve all applicable dependency and copied-code notices.
+
 ## Ownership and architecture
 
 ```text
@@ -44,16 +54,19 @@ Initial rules:
 
 1. Remove `else` after a directly terminating branch.
 2. Merge nested `if` statements without alternatives using short-circuit `and`.
+3. Normalize a directly exiting `else` into a guard and lift the normal path.
 
 Use conservative syntax subsets. Skip comments in edited regions, multiline string literals, tabs, one-line suites, and named-expression conditions until dedicated handling is implemented. Preserve expression evaluation and control destinations. Do not equate arbitrary truthy values with Boolean values when simplifying returns.
 
 Each rule needs positive/negative, nesting, comment, malformed-source, idempotence, and differential fixtures. Record limitations honestly; these rules overlap existing lint fixes and do not establish novelty.
 
-### 3. Second backend and useful gap — next
+### 3. Coherent control-flow normalization — active
 
-Compare candidate transformations against existing native fixes (Ruff/Clippy/ESLint/Go modernize as appropriate). Select a second language and rules based on useful real-source opportunities and semantic tractability, not implementation language. Add that language's grammar and tests. No language is supported merely because its parser loads.
+Compose redundant-else removal, nested-condition flattening, and guard normalization. Add redundant-path simplification only with explicit safety conditions. Prioritize useful combined output, preservation, and stable formatter behavior over isolated rule novelty. Use existing tool implementations and tests as references; record attribution for any copied/adapted material.
 
-Broader candidates: guard normalization, equivalent-branch consolidation, redundant Boolean/control-flow paths. Scope changes, overloaded operators, destructors, labels, coercions, and evaluation order require language-specific reasoning. Unsafe or judgment-heavy cases remain unchanged.
+Keep `tree-sitter`, language grammars, `usage-rs`, `ignore`, `similar`, `tempfile`, and `anyhow`. Do not add a generic rewrite framework. Ruff internals are published but have unstable Rust interfaces; consider a specific crate only when its Python semantic capabilities materially reduce complexity. See `DEPENDENCIES.md`.
+
+A second backend follows the useful first-language pass. Scope changes, overloaded operators, destructors, labels, coercions, and evaluation order require language-specific reasoning. No language is supported merely because its parser loads.
 
 ### 4. Real-project validation
 

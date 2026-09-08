@@ -13,7 +13,9 @@ Read `docs/HANDOFF.md` for the current architecture and roadmap, `docs/EXAMPLE_S
 - Formatter UX: default write, non-mutating check/diff, concise rule explanations. Preserve unrelated bytes; do not rebuild native formatting.
 - Rules own applicability and safety conditions. Skip uncertain cases. Preserve scope, evaluation order, effects, comments, and control-flow destinations.
 - Reparse edits, guarantee convergence or fail without writing, and test idempotence. Do not optimize an opaque complexity score or extract helpers merely to reduce it.
-- Keep one small Rust package. Avoid a universal semantic AST or generic codemod framework before concrete backends justify shared abstractions.
+- Keep one small Rust package and the current dependency stack. Use Ruff externally for comparison and learn from its semantic/rule infrastructure; embed specific internals only for a concrete benefit. Avoid a universal semantic AST or generic codemod framework before concrete backends justify shared abstractions.
+- Optimize for a useful coherent cleanup pass, not individual rule novelty. Existing autofixer overlap is acceptable; distinguish observed results from claimed superiority or agent time savings.
+- Source is public but intentionally has no project license yet. Do not choose a license or call it open source without the user's decision. Preserve third-party notices.
 - Run formatting, tests, and Clippy. Test positive, negative, nested, comment, malformed-input, and behavioral cases.
 
 ## Hackathon and evidence

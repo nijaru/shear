@@ -7,7 +7,9 @@ pub(super) fn next_edit(root: Node<'_>, source: &str) -> Option<Edit> {
     while let Some(node) = pending.pop() {
         if node.kind() == "if_statement"
             && safe_region(node, source)
-            && let Some(edit) = redundant_else(node, source).or_else(|| merge_nested(node, source))
+            && let Some(edit) = redundant_else(node, source)
+                .or_else(|| guard_clause(node, source))
+                .or_else(|| merge_nested(node, source))
         {
             return Some(edit);
         }
@@ -73,18 +75,7 @@ fn redundant_else(node: Node<'_>, source: &str) -> Option<Edit> {
         return None;
     }
     let consequence = node.child_by_field_name("consequence")?;
-    let last = consequence.named_child(
-        consequence
-            .named_child_count()
-            .checked_sub(1)?
-            .try_into()
-            .ok()?,
-    )?;
-    // Only explicit unconditional exits, never calls that merely look like exit/panic.
-    if !matches!(
-        last.kind(),
-        "return_statement" | "raise_statement" | "break_statement" | "continue_statement"
-    ) {
+    if !directly_terminates(consequence) {
         return None;
     }
     let body = alternative.child_by_field_name("body")?;
@@ -102,6 +93,59 @@ fn redundant_else(node: Node<'_>, source: &str) -> Option<Edit> {
         line: alternative.start_position().row + 1,
         range: line_start(source, alternative.start_byte())..alternative.end_byte(),
         replacement,
+    })
+}
+
+// Only explicit unconditional exits, never calls that merely look like exit/panic.
+fn directly_terminates(block: Node<'_>) -> bool {
+    let mut cursor = block.walk();
+    block
+        .named_children(&mut cursor)
+        .last()
+        .is_some_and(|last| {
+            matches!(
+                last.kind(),
+                "return_statement" | "raise_statement" | "break_statement" | "continue_statement"
+            )
+        })
+}
+
+fn guard_clause(node: Node<'_>, source: &str) -> Option<Edit> {
+    let alternative = node.child_by_field_name("alternative")?;
+    if alternative.kind() != "else_clause" {
+        return None;
+    }
+    let consequence = node.child_by_field_name("consequence")?;
+    let exit_body = alternative.child_by_field_name("body")?;
+    if directly_terminates(consequence) || !directly_terminates(exit_body) {
+        return None;
+    }
+    let condition = node.child_by_field_name("condition")?;
+    if condition.start_position().row != condition.end_position().row
+        || consequence.start_position().row == node.start_position().row
+        || exit_body.start_position().row == alternative.start_position().row
+        || !source[node.end_byte()..]
+            .split('\n')
+            .next()?
+            .trim()
+            .is_empty()
+    {
+        return None;
+    }
+    let lifted = dedent_block(consequence, source, indent(node, source)?)?;
+    let exit_suite = &source[line_start(source, exit_body.start_byte())..exit_body.end_byte()];
+    // `not` performs one truth test; do not invert comparison operators (NaN,
+    // overloaded comparisons, and rich truthiness make that a different operation).
+    Some(Edit {
+        rule: "guard-clause",
+        line: node.start_position().row + 1,
+        range: node.byte_range(),
+        replacement: format!(
+            "if not ({}):\n{}\n{}",
+            text(condition, source),
+            exit_suite,
+            lifted
+        ),
     })
 }
 

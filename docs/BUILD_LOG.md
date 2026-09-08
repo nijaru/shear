@@ -77,9 +77,23 @@ ffmpeg -v error -i demo/smoke/capture.mp4 -f null -
 
 MOV: H.264, 3456×2234, 9.993333 seconds. MP4: H.264/yuv420p, 1920×1242, 10.000000 seconds, 726052 bytes; full decode succeeded. No audio was captured. These are local private desktop smoke artifacts, not demo footage. Full-size playback, framing, and readability were **not reviewed**. Repeatable commands are in `demo/smoke.sh`; raw/output directories are ignored.
 
+## Coherent-pass iteration, 12:50 PM onward
+
+The user clarified that useful structural cleanup per agent invocation is the objective, not novelty of individual rules. Updated the roadmap and dependency strategy accordingly. Ruff remains an external reference and comparison tool; no new dependencies were added and no Ruff source was copied. Shear remains public with no project license chosen.
+
+Added `guard-clause`: a terminal alternative becomes an early exit, allowing the normal path to be lifted and further simplified by the existing rules. Negation uses `not (condition)` rather than inverting comparisons, preserving NaN and rich-comparison behavior.
+
+Actual development checks:
+
+- `cargo test --test rewrites guard`: two expected failures before implementation (guard absent; only nested-if rule ran).
+- `cargo test`: all 16 tests pass afterward (5 CLI, 11 rewrite).
+- `cargo clippy --all-targets --all-features -- -D warnings`: pass.
+- Differential Python fixtures preserve effectful truth tests, raised exceptions, NaN classification, `finally` effects, returns, break, and continue. Composition and unchanged second runs are checked.
+
 ## Next work
 
-1. Find a meaningful rule/policy gap rather than claiming the first two fixes are unique.
-2. Expand safety fixtures and add a second backend when a concrete rewrite opportunity justifies it.
+1. Validate the combined control-flow pass on a useful real-code example; existing autofixer overlap is acceptable and should be documented.
+2. Improve conservative applicability where real code exposes friction, preserving comment and safety contracts.
 3. Requalify incoming targets under the deterministic product contract; existing Go research is not runnable with the Python-only prototype.
-4. Run unchanged real-project checks and prepare the one-minute video only after useful source evidence exists.
+4. Add a second backend after the first-language pass provides useful evidence, rather than chasing grammar count.
+5. Run unchanged real-project checks and prepare the one-minute video only after useful source evidence exists.

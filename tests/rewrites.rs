@@ -32,6 +32,29 @@ fn merges_nested_conditions_and_converges() {
 }
 
 #[test]
+fn turns_terminal_else_into_guard() {
+    let source = "def f(valid):\n    if valid:\n        value = 3\n        use(value)\n    else:\n        return 0\n    return value\n";
+    assert_eq!(
+        transformed(source),
+        "def f(valid):\n    if not (valid):\n        return 0\n    value = 3\n    use(value)\n    return value\n"
+    );
+}
+
+#[test]
+fn guard_then_flattens_nested_flow() {
+    let source = "def f(a, b, c):\n    if a:\n        if b:\n            if c:\n                work()\n    else:\n        raise ValueError()\n";
+    let outcome = simplify_python(source).unwrap();
+    assert_eq!(
+        outcome.rewrites.iter().map(|r| r.rule).collect::<Vec<_>>(),
+        vec!["guard-clause", "merge-nested-if"]
+    );
+    assert_eq!(
+        transformed(source),
+        "def f(a, b, c):\n    if not (a):\n        raise ValueError()\n    if (b) and (c):\n        work()\n"
+    );
+}
+
+#[test]
 fn combines_rules() {
     let input = "def f(a, b):\n    if a:\n        return 1\n    else:\n        if b:\n            if a or b:\n                return 2\n    return 3\n";
     let result = simplify_python(input).unwrap();
@@ -55,6 +78,10 @@ fn skips_uncertain_regions() {
         "def f(a):\n    if a:\n        return 1\n    else: return 2\n",
         "def f(a):\n    if a:\n        return 1\n    elif b:\n        return 2\n    else:\n        return 3\n",
         "def f(a):\n    if a:\n        return 1\n    else:\n        return 2 # important\n",
+        "def f(a):\n    if a:\n        # meaningful\n        work()\n    else:\n        return 0\n",
+        "def f(a):\n    if a:\n        work()\n    else:\n        maybe_exit()\n",
+        "def f(a):\n    if a: work()\n    else:\n        return 0\n",
+        "def f(a):\n    if a:\n        work()\n    else:\n        return 0 # keep here\n",
     ] {
         assert_eq!(transformed(source), source, "unexpected rewrite: {source}");
     }
@@ -141,6 +168,70 @@ print(events, loop())
     let result = transformed(source);
     assert_ne!(source, result);
     assert_eq!(execute(source), execute(&result));
+}
+
+#[test]
+fn guard_preserves_truthiness_nan_and_finally_effects() {
+    let source = r#"events = []
+class Value:
+    def __init__(self, value):
+        self.value = value
+    def __bool__(self):
+        events.append('truth-test')
+        if self.value == 'raise':
+            raise ValueError('truth')
+        return self.value
+
+def choose(value):
+    try:
+        if value:
+            events.append('work')
+            result = 3
+        else:
+            events.append('exit')
+            return 0
+        return result
+    finally:
+        events.append('finally')
+
+def compare(x):
+    if x < 0:
+        result = 'negative'
+    else:
+        return 'not-negative'
+    return result
+
+def loop():
+    out = []
+    for x in range(5):
+        if x != 1:
+            out.append(x)
+        else:
+            continue
+        if x < 3:
+            out.append(-x)
+        else:
+            break
+    return out
+
+for value in [False, True, 'raise']:
+    try:
+        events.append(choose(Value(value)))
+    except ValueError as error:
+        events.append(str(error))
+print(events, [compare(x) for x in [-1, 0, float('nan')]], loop())
+"#;
+    let result = simplify_python(source).unwrap();
+    assert_eq!(
+        result
+            .rewrites
+            .iter()
+            .filter(|r| r.rule == "guard-clause")
+            .count(),
+        4
+    );
+    assert_eq!(execute(source), execute(&result.source));
+    assert_eq!(transformed(source), result.source);
 }
 
 #[test]
