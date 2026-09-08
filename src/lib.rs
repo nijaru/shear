@@ -48,8 +48,8 @@ pub struct Outcome {
     pub rewrites: Vec<Rewrite>,
 }
 
-/// Reparse after each surgical edit. Each rule removes one `if` or `else`,
-/// so the finite pass budget is a failure boundary, not a normal stopping point.
+/// Reparse after each surgical edit. Rules remove a statement or alternative;
+/// the finite pass budget is a failure boundary, not a normal stopping point.
 pub fn simplify(source: &str, language: Language) -> Result<Outcome> {
     ensure!(
         source.len() <= 2 * 1024 * 1024,

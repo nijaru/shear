@@ -6,8 +6,8 @@ Shear runs locally without a model or API key. Humans and coding agents invoke i
 
 | Language | Current transformations |
 |---|---|
-| Python (`.py`) | Redundant `else`, exiting alternatives into guards, nested conditions |
-| JavaScript (`.js`, `.mjs`, `.cjs`) | Redundant `else` after an explicit exit, where removing the block preserves scope and statement boundaries |
+| Python (`.py`) | Shared branch tails, redundant `else`/`elif`, exiting alternatives into guards, nested conditions |
+| JavaScript (`.js`, `.mjs`, `.cjs`) | Redundant `else`, exiting alternatives into guards, nested conditions, with scope and statement-boundary checks |
 
 ## Build and run
 
@@ -41,13 +41,15 @@ Run your native formatter and normal compiler/linter/tests afterward. Shear does
 
 ## Current limits
 
-The [review](docs/REVIEW.md) found declaration-order and path-policy defects, now protected by regression tests: guards skip declaration-containing regions and swaps that move names across names, and explicit paths reject symlinked components before canonicalization. The guard restriction also preserves CPython local-variable/finalizer ordering; form-feed regions are skipped to avoid indentation corruption. This includes aliases such as macOS `/tmp`; supply the real path (for example `/private/tmp`) or run from the physical directory. Concurrent path replacement remains unsupported. Merged conditions avoid redundant grouping and are skipped when the resulting header exceeds an 88-byte budget. JavaScript skips lexical/function/class/`using` declarations in lifted blocks, ambiguous layouts, and implicit-semicolon boundaries. Do not treat parsing as a substitute for native compilation and project tests. See the [language-specific contracts](docs/RULES.md).
+The [review](docs/REVIEW.md) found declaration-order and path-policy defects, now protected by regression tests: guards skip declaration-containing regions and swaps whose local-slot order cannot be established, and explicit paths reject symlinked components before canonicalization. The guard restriction also preserves CPython local-variable/finalizer ordering; form-feed regions are skipped to avoid indentation corruption. This includes aliases such as macOS `/tmp`; supply the real path (for example `/private/tmp`) or run from the physical directory. Concurrent path replacement remains unsupported. Merged conditions avoid redundant grouping and are skipped when the resulting header exceeds an 88-byte budget. JavaScript skips lexical/function/class/`using` declarations in lifted blocks, ambiguous layouts, and implicit-semicolon boundaries. Do not treat parsing as a substitute for native compilation and project tests. See the [language-specific contracts](docs/RULES.md).
 
 This is an early prototype, not a general refactoring engine. It preserves ordinary suite comments but skips uncertain cases rather than reconstructing arbitrary code. TypeScript, JSX, helper extraction, and general refactoring are not supported. Rules reparse after each edit and converge to an unchanged second run. Inputs are limited to 2 MiB per file and 1,024 rewrites per file; pending original/result bytes are capped at 64 MiB per invocation. Parse checks are not type checking or proof of equivalence.
 
 Writes preserve permissions and check for stale bytes before replacement. Stop concurrent writers; the comparison and replacement are not a filesystem transaction. A filesystem failure can leave an already-written portion of a multi-file batch. Use a version-controlled working tree.
 
-A [checked two-project demonstration](docs/MIXED_EXAMPLE.md) produces 6 Python and 2 JavaScript simplifications in one invocation. Before/after checks pass: 1,894 Python tests and 263 + 247 JavaScript assertions, with unchanged Windows skips. This is not a full CPython test run or a claim that every hunk is universally preferable. The goal is a coherent cleanup pass for humans and agents, not exclusive rules; overlap with existing autofixers is expected. Agent time savings have not been measured.
+A [checked normalization example](docs/NORMALIZATION_EXAMPLE.md) removes duplicated branch cleanup from CPython’s `locale._localize` after configured Ruff autofixes, with the unchanged locale suite passing at all three stages.
+
+The [earlier two-project demonstration](docs/MIXED_EXAMPLE.md), recorded against implementation `202dc47`, produces 6 Python and 2 JavaScript simplifications in one invocation. Before/after checks pass: 1,894 Python tests and 263 + 247 JavaScript assertions, with unchanged Windows skips. This is not a full CPython test run or a claim that every hunk is universally preferable. The goal is a coherent cleanup pass for humans and agents, not exclusive rules; overlap with existing autofixers is expected. Agent time savings have not been measured.
 
 Source is public but has no project license yet. Dependencies retain their own licenses.
 

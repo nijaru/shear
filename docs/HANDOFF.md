@@ -2,21 +2,13 @@
 
 Updated September 8, 2026 after explicit user correction. This replaces the mistaken model-proposal product described in the earlier revision. Original concept supplied in `structural-formatter-handoff.md`: **the transformation engine is the product**.
 
-## Active delivery plan — September 8, updated 3:30 PM Pacific
+## Active delivery status — September 8, 4:55 PM Pacific
 
-**Completed:** implementation `202dc47` supports Python and JavaScript in one invocation; 43 repository tests pass locally and in Linux CI. The mixed real-source rehearsal passed 1,894 Python tests and 263 + 247 JavaScript assertions with unchanged Windows skips. Independent review found a `using` disposal-scope bug, now fixed and regression-tested; follow-up review found no additional P0–P2 issues. Exact evidence is in `MIXED_EXAMPLE.md`.
+The expanded normalization pass supports Python shared branch tails, exhaustive exits, redundant `elif` flattening and broader conservative guards, plus JavaScript exhaustive exits, nested-condition merging and guards. All 64 repository tests, formatting and Clippy pass locally with Python 3.14.7 and Node v26.8.1. The default login shell selected Python 3.9 in the desktop session and failed the existing `anext` test; selecting `/opt/homebrew/bin` first restored the intended environment.
 
-**Current focus:** finish checked input/runbook preparation for a possible Codex desktop-operated recording. The user explicitly asked to focus on prep; do not add recording infrastructure or wait for CI on this path. Coordinate desktop access before recording. Synthetic delivery-policy preparation is retired; the real inputs work.
+The current recording centerpiece is [NORMALIZATION_EXAMPLE.md](NORMALIZATION_EXAMPLE.md): a real shared continuation in CPython `locale._localize` after configured Ruff autofixes. The earlier argparse+JavaScript evidence in [MIXED_EXAMPLE.md](MIXED_EXAMPLE.md) remains tied to `202dc47`; do not apply its eight-rewrite count to the expanded binary.
 
-The user approved strengthening the demo through actual two-language support. Target one Shear invocation over one checked Python file and one checked JavaScript file. This demonstrates a shared structural-cleanup workflow beyond Ruff's Python scope; it does not establish novel individual rules or superiority over every linter.
-
-1. Qualified: `browserify/path-browserify` at `872fec31a8bac7b9b43be0e54ef3037e0202c5fb`; real `relative()` and `basename()` cleanup, Node v26.8.1, tree-sitter-javascript 0.25.0.
-2. Start with a conservative JavaScript transformation whose scope and evaluation-order preservation can be explained and tested. Do not transfer Python's no-branch-scope assumption. Share parsing/edit/convergence mechanics, keep semantic applicability in the backend.
-3. Add extension dispatch and mixed-language CLI tests; preserve preflight-before-write, comments, stale-input checks, and existing Python behavior. Add only transformations that survive compiler/behavior tests and full-diff review.
-4. Run both real projects' checks before and after the same mixed invocation; verify idempotence, original preservation, full reading paths, hashes, and attribution. Get independent review of the backend.
-5. Rehearse the complete screen sequence, record a sub-minute video, inspect full playback, and prepare submission. Coordinate desktop access first; do not upload without an authorized destination.
-
-Aim to have the mixed workflow checked around 3:30 PM, review/rehearsal around 4:00, and retain the earlier 4:30 recording/5:00 preparation targets before the 5:30 deadline. These are scheduling checkpoints, not a feature freeze or permission to weaken safety. If JavaScript does not qualify, disclose that and use the already-checked Python fallback rather than fabricate coverage. The original Python-only rehearsal remains an available fallback; avoid further synthetic-fixture work.
+Delivery remains active: prepare a fresh Ruff-only locale input alongside original path-browserify JavaScript, record through the Codex desktop app with computer use, then inspect the complete exported playback. No final video or submission exists. The event deadline is 5:30 PM Pacific. External upload needs an authorized destination. No feature freeze is in force; prioritize delivery of the checked pass.
 
 ## End state
 

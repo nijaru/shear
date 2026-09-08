@@ -7,7 +7,8 @@ pub(super) fn next_edit(root: Node<'_>, source: &str) -> Option<Edit> {
     while let Some(node) = pending.pop() {
         if node.kind() == "if_statement"
             && safe_region(node, source)
-            && let Some(edit) = redundant_else(node, source)
+            && let Some(edit) = shared_branch_tail(node, source)
+                .or_else(|| redundant_else(node, source))
                 .or_else(|| guard_clause(node, source))
                 .or_else(|| merge_nested(node, source))
         {
@@ -94,8 +95,12 @@ fn dedent_suite(header: Node<'_>, block: Node<'_>, source: &str, target: usize) 
         return None;
     }
     let start = suite_start(header, block, source)?;
+    dedent_lines(&source[start..block.end_byte()], remove)
+}
+
+fn dedent_lines(source: &str, remove: usize) -> Option<String> {
     let mut output = String::new();
-    for line in source[start..block.end_byte()].split_inclusive('\n') {
+    for line in source.split_inclusive('\n') {
         if line.trim().is_empty() {
             output.push_str(line);
             continue;
@@ -108,13 +113,81 @@ fn dedent_suite(header: Node<'_>, block: Node<'_>, source: &str, target: usize) 
     Some(output)
 }
 
-fn redundant_else(node: Node<'_>, source: &str) -> Option<Edit> {
+fn shared_branch_tail(node: Node<'_>, source: &str) -> Option<Edit> {
     let alternative = node.child_by_field_name("alternative")?;
-    if alternative.kind() != "else_clause" {
+    if alternative.kind() != "else_clause" || contains_kind(node, &["comment"]) {
         return None;
     }
+    let left = node.child_by_field_name("consequence")?;
+    let right = alternative.child_by_field_name("body")?;
+    suite_start(node, left, source)?;
+    suite_start(alternative, right, source)?;
+    if !source[node.end_byte()..]
+        .split('\n')
+        .next()?
+        .trim()
+        .is_empty()
+    {
+        return None;
+    }
+    let mut cursor = left.walk();
+    let a: Vec<_> = left.named_children(&mut cursor).collect();
+    let mut cursor = right.walk();
+    let b: Vec<_> = right.named_children(&mut cursor).collect();
+    let common = a
+        .iter()
+        .rev()
+        .zip(b.iter().rev())
+        .take_while(|(a, b)| text(**a, source) == text(**b, source))
+        .count();
+    // Retain the distinct work in each branch; do not replace empty suites with
+    // pass or discard the condition's truth test and effects.
+    if common == 0 || common >= a.len().min(b.len()) {
+        return None;
+    }
+    let first = a[a.len() - common];
+    let second = b[b.len() - common];
+    if indent(first, source)? != indent(left, source)?
+        || indent(second, source)? != indent(right, source)?
+        || !exit_uses_only_established_locals(first, left, source)
+    {
+        return None;
+    }
+    let start_a = line_start(source, first.start_byte());
+    let start_b = line_start(source, second.start_byte());
+    let width = indent(left, source)?.checked_sub(indent(node, source)?)?;
+    if width == 0 || indent(left, source)? != indent(right, source)? {
+        return None;
+    }
+    let tail = dedent_lines(&source[start_a..left.end_byte()], width)?;
+    Some(Edit {
+        rule: "shared-branch-tail",
+        line: first.start_position().row + 1,
+        range: node.byte_range(),
+        replacement: format!(
+            "{}{}{}",
+            &source[node.start_byte()..start_a],
+            &source[line_start(source, alternative.start_byte())..start_b],
+            tail
+        ),
+    })
+}
+
+fn redundant_else(node: Node<'_>, source: &str) -> Option<Edit> {
+    let alternative = node.child_by_field_name("alternative")?;
     let consequence = node.child_by_field_name("consequence")?;
     if !directly_terminates(consequence) {
+        return None;
+    }
+    if alternative.kind() == "elif_clause" {
+        return Some(Edit {
+            rule: "redundant-elif",
+            line: alternative.start_position().row + 1,
+            range: alternative.start_byte()..alternative.start_byte() + 4,
+            replacement: "if".to_owned(),
+        });
+    }
+    if alternative.kind() != "else_clause" {
         return None;
     }
     let body = alternative.child_by_field_name("body")?;
@@ -150,19 +223,53 @@ fn redundant_else(node: Node<'_>, source: &str) -> Option<Edit> {
     })
 }
 
-// Only explicit unconditional exits, never calls that merely look like exit/panic.
+// Exhaustive branches compose exits; loops, calls and try/finally do not supply
+// an exit fact. Iteration keeps deeply nested input off the Rust call stack.
 fn directly_terminates(block: Node<'_>) -> bool {
-    let mut cursor = block.walk();
-    block
-        .named_children(&mut cursor)
-        .filter(|child| child.kind() != "comment")
-        .last()
-        .is_some_and(|last| {
-            matches!(
-                last.kind(),
-                "return_statement" | "raise_statement" | "break_statement" | "continue_statement"
-            )
-        })
+    let mut pending = vec![block];
+    while let Some(node) = pending.pop() {
+        match node.kind() {
+            "return_statement" | "raise_statement" | "break_statement" | "continue_statement" => {}
+            "block" => {
+                let mut cursor = node.walk();
+                let Some(last) = node
+                    .named_children(&mut cursor)
+                    .filter(|child| child.kind() != "comment")
+                    .last()
+                else {
+                    return false;
+                };
+                pending.push(last);
+            }
+            "if_statement" => {
+                let Some(body) = node.child_by_field_name("consequence") else {
+                    return false;
+                };
+                pending.push(body);
+                let mut exhaustive = false;
+                let mut cursor = node.walk();
+                for branch in node.named_children(&mut cursor) {
+                    let field = match branch.kind() {
+                        "elif_clause" => "consequence",
+                        "else_clause" => {
+                            exhaustive = true;
+                            "body"
+                        }
+                        _ => continue,
+                    };
+                    let Some(body) = branch.child_by_field_name(field) else {
+                        return false;
+                    };
+                    pending.push(body);
+                }
+                if !exhaustive {
+                    return false;
+                }
+            }
+            _ => return false,
+        }
+    }
+    true
 }
 
 fn contains_kind(root: Node<'_>, kinds: &[&str]) -> bool {
@@ -195,7 +302,10 @@ fn guard_clause(node: Node<'_>, source: &str) -> Option<Edit> {
     // Even reads affect CPython's local-slot ordering and hence observable
     // locals()/finalizer order. Do not move names across names without scope
     // analysis; an identifier-free suite cannot reorder symbol encounters.
-    if contains_kind(consequence, &["identifier"]) && contains_kind(exit_body, &["identifier"]) {
+    if contains_kind(consequence, &["identifier"])
+        && contains_kind(exit_body, &["identifier"])
+        && !exit_uses_only_established_locals(node, exit_body, source)
+    {
         return None;
     }
     let condition = node.child_by_field_name("condition")?;
@@ -231,6 +341,123 @@ fn guard_clause(node: Node<'_>, source: &str) -> Option<Edit> {
             lifted
         ),
     })
+}
+
+// Moving global reads and parameter reads cannot reorder first encounters of
+// local slots. Collect a conservative superset of bindings across the entire
+// function, including assignments after this branch. Nested/annotation scopes
+// require separate binding analysis and are deliberately not inferred here.
+fn exit_uses_only_established_locals(node: Node<'_>, exit: Node<'_>, source: &str) -> bool {
+    let mut scope = node;
+    while scope.kind() != "function_definition" {
+        let Some(parent) = scope.parent() else {
+            return false;
+        };
+        scope = parent;
+    }
+    let Some(body) = scope.child_by_field_name("body") else {
+        return false;
+    };
+    if contains_kind(
+        body,
+        &[
+            "function_definition",
+            "class_definition",
+            "lambda",
+            "list_comprehension",
+            "set_comprehension",
+            "dictionary_comprehension",
+            "generator_expression",
+            "type_alias_statement",
+            "global_statement",
+            "nonlocal_statement",
+        ],
+    ) || contains_kind(scope, &["type_parameter"])
+    {
+        return false;
+    }
+    let Some(parameters) = scope.child_by_field_name("parameters") else {
+        return false;
+    };
+    let mut cursor = parameters.walk();
+    let mut established: std::collections::HashSet<_> = parameters
+        .named_children(&mut cursor)
+        .filter_map(|parameter| match parameter.kind() {
+            "identifier" => Some(parameter),
+            "default_parameter" | "typed_default_parameter" => {
+                parameter.child_by_field_name("name")
+            }
+            "typed_parameter" | "list_splat_pattern" | "dictionary_splat_pattern" => {
+                parameter.named_child(0)
+            }
+            _ => None,
+        })
+        .filter(|name| name.kind() == "identifier")
+        .map(|name| text(name, source))
+        .collect();
+    let identifiers = |root: Node<'_>| {
+        let mut names = std::collections::HashSet::new();
+        let mut pending = vec![root];
+        while let Some(node) = pending.pop() {
+            if node.kind() == "identifier" {
+                names.insert(text(node, source));
+            }
+            let mut cursor = node.walk();
+            pending.extend(node.named_children(&mut cursor));
+        }
+        names
+    };
+    let mut bindings = identifiers(parameters);
+    // CPython canonicalizes Unicode identifiers and mangles private class
+    // names. Raw spelling is not a binding identity for these scopes.
+    if bindings
+        .iter()
+        .copied()
+        .chain(identifiers(body))
+        .any(|name| !name.is_ascii() || (name.starts_with("__") && !name.ends_with("__")))
+    {
+        return false;
+    }
+    let mut pending = vec![body];
+    let cutoff = node.start_byte();
+    while let Some(node) = pending.pop() {
+        if node.kind() == "assignment"
+            && node.child_by_field_name("right").is_some()
+            && node.end_byte() <= cutoff
+            && let Some(target) = node.child_by_field_name("left")
+            && target.kind() == "identifier"
+        {
+            established.insert(text(target, source));
+        }
+        if matches!(
+            node.kind(),
+            "assignment"
+                | "augmented_assignment"
+                | "named_expression"
+                | "for_statement"
+                | "with_statement"
+                | "except_clause"
+                | "import_statement"
+                | "import_from_statement"
+                | "delete_statement"
+                | "match_statement"
+        ) {
+            let target = if matches!(
+                node.kind(),
+                "assignment" | "augmented_assignment" | "for_statement"
+            ) {
+                node.child_by_field_name("left").unwrap_or(node)
+            } else {
+                node
+            };
+            bindings.extend(identifiers(target));
+        }
+        let mut cursor = node.walk();
+        pending.extend(node.named_children(&mut cursor));
+    }
+    identifiers(exit)
+        .into_iter()
+        .all(|name| !bindings.contains(name) || established.contains(name))
 }
 
 // Parentheses are only omitted for known operand shapes whose precedence is

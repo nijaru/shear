@@ -80,7 +80,6 @@ fn skips_uncertain_regions() {
         "if a:\n    if b:\n        text = '''hello\n        world'''\n",
         "if a:\n    if b: work()\n",
         "def f(a):\n    if a:\n        return 1\n    else: return 2\n",
-        "def f(a):\n    if a:\n        return 1\n    elif b:\n        return 2\n    else:\n        return 3\n",
         "def f(a):\n    if a:\n        return 1\n    else: # important\n        return 2\n",
         "def f(a):\n    if a: # meaningful\n        work()\n    else:\n        return 0\n",
         "def f(a):\n    if a:\n        work()\n    else:\n        maybe_exit()\n",
@@ -170,6 +169,103 @@ fn merged_conditions_preserve_precedence() {
         );
         assert_eq!(execute(&program), execute(&transformed(&program)));
     }
+}
+
+#[test]
+fn flattens_exhaustive_exit_trees_and_elif_chains() {
+    let source = "def f(a, b):\n    if a:\n        if b:\n            return 1\n        elif b is None:\n            raise ValueError('missing')\n        else:\n            return 2\n    else:\n        result = 3\n    return result\n";
+    let output = transformed(source);
+    assert!(!output.contains("else:"), "{output}");
+    assert!(!output.contains("elif "), "{output}");
+    assert!(output.contains("\n    result = 3\n"));
+    let cases = "\nfor a in [False, True]:\n for b in [False, True, None]:\n  try:\n   print(f(a, b))\n  except ValueError as error:\n   print(type(error).__name__, str(error))\n";
+    assert_eq!(
+        execute(&(source.to_owned() + cases)),
+        execute(&(output + cases))
+    );
+}
+
+#[test]
+fn named_guards_preserve_local_slots_and_truth_tests() {
+    let source = "events = []\nclass Flag:\n    def __init__(self, value):\n        self.value = value\n    def __bool__(self):\n        events.append('truth')\n        return self.value\ndef f(flag, message):\n    if flag:\n        result = message.upper()\n        events.append('work')\n    else:\n        raise ValueError(message)\n    return result, list(locals())\n";
+    let output = transformed(source);
+    assert!(output.contains("if not (flag):\n        raise ValueError(message)"));
+    let cases = "\nprint(f.__code__.co_varnames)\nfor flag in [True, False]:\n try:\n  print(f(Flag(flag), 'bad')[0])\n except ValueError as error:\n  print(type(error).__name__, str(error))\nprint(events)\n";
+    assert_eq!(
+        execute(&(source.to_owned() + cases)),
+        execute(&(output + cases))
+    );
+}
+
+#[test]
+fn named_guards_skip_later_bindings_and_nested_scopes() {
+    for source in [
+        "def f(flag):\n    if flag:\n        a = 1\n    else:\n        raise Error()\n    Error = ValueError\n    return list(locals())\n",
+        "def f(flag):\n    if flag:\n        a = 1\n    else:\n        return b\n    for b in []:\n        pass\n    return list(locals())\n",
+        "def f(flag):\n    if flag:\n        a = 1\n    else:\n        return b\n    try:\n        pass\n    except Exception as b:\n        pass\n    return list(locals())\n",
+        "def f(flag):\n    def inner():\n        return 0\n    if flag:\n        a = 1\n    else:\n        return inner()\n    return a\n",
+    ] {
+        assert_eq!(transformed(source), source);
+    }
+}
+
+#[test]
+fn shares_branch_continuations_without_reordering_local_slots() {
+    let source = "events = []\ndef f(flag, value=3):\n    if flag:\n        result = value + 1\n        events.append(result)\n        return result\n    else:\n        result = value - 1\n        events.append(result)\n        return result\n";
+    let output = transformed(source);
+    assert_eq!(output.matches("events.append(result)").count(), 1);
+    assert_eq!(output.matches("return result").count(), 1);
+    assert!(output.contains("\n    events.append(result)\n    return result"));
+    let cases = "\nprint(f.__code__.co_varnames)\nprint(f(True), f(False), events)\n";
+    assert_eq!(
+        execute(&(source.to_owned() + cases)),
+        execute(&(output + cases))
+    );
+}
+
+#[test]
+fn shared_tail_preserves_effects_exceptions_and_loop_destinations() {
+    let source = "events = []\ndef f(flag):\n    if flag:\n        result = 1\n        events.append(result)\n        raise ValueError(result)\n    else:\n        result = 2\n        events.append(result)\n        raise ValueError(result)\ndef loop():\n    result = []\n    for flag in [True, False]:\n        if flag:\n            result.append(1)\n            events.append(flag)\n            continue\n        else:\n            result.append(2)\n            events.append(flag)\n            continue\n    return result\nfor flag in [True, False]:\n try:\n  f(flag)\n except ValueError as error:\n  print(str(error))\nprint(loop(), events)\n";
+    let output = transformed(source);
+    assert_ne!(source, output);
+    assert_eq!(execute(source), execute(&output));
+}
+
+#[test]
+fn shared_tail_keeps_new_bindings_comments_and_semicolon_boundaries() {
+    for source in [
+        "def f(flag):\n    if flag:\n        a = 1\n        common = 2\n    else:\n        b = 1\n        common = 2\n    return list(locals())\n",
+        "def f(flag):\n    if flag:\n        a = 1; print('same')\n    else:\n        b = 1; print('same')\n    return list(locals())\n",
+        "def f(flag):\n    if flag:\n        a = 1\n        # shared explanation\n        print('same')\n    else:\n        b = 1\n        # shared explanation\n        print('same')\n    return list(locals())\n",
+    ] {
+        let output = transformed(source);
+        assert_eq!(output, source);
+        let cases = "\nprint(f(True), f(False))\n";
+        assert_eq!(
+            execute(&(source.to_owned() + cases)),
+            execute(&(output + cases))
+        );
+    }
+}
+
+#[test]
+fn local_slot_analysis_respects_annotations_and_canonical_names() {
+    for source in [
+        "def f(flag):\n    x: int\n    if flag:\n        a = 1\n        x = 2\n    else:\n        b = 1\n        x = 2\n    return list(locals())\nprint(f(False), f.__code__.co_varnames)\n",
+        "def f(flag):\n    x: int\n    if flag:\n        a = 1\n    else:\n        return x\n    x = 2\n    return list(locals())\nprint(f(True), f.__code__.co_varnames)\n",
+        "class C:\n    def f(self, flag):\n        if flag:\n            a = 1\n        else:\n            return _C__value\n        __value = 2\n        return list(locals())\nprint(C().f(True), C.f.__code__.co_varnames)\n",
+        "def f(flag):\n    if flag:\n        a = 1\n    else:\n        return K\n    K = 2\n    return list(locals())\nprint(f(True), f.__code__.co_varnames)\n",
+    ] {
+        let output = transformed(source);
+        assert_eq!(execute(source), execute(&output));
+        assert_eq!(output, source);
+    }
+}
+
+#[test]
+fn incomplete_exit_trees_keep_the_alternative() {
+    let source = "def f(a, b):\n    if a:\n        if b:\n            return 1\n        work()\n    else:\n        other()\n    return 3\n";
+    assert_eq!(transformed(source), source);
 }
 
 #[test]
@@ -338,7 +434,7 @@ print(events, [compare(x) for x in [-1, 0, float('nan')]], loop())
             .iter()
             .filter(|r| r.rule == "guard-clause")
             .count(),
-        3
+        4
     );
     assert_eq!(execute(source), execute(&result.source));
     assert_eq!(transformed(source), result.source);

@@ -1,0 +1,19 @@
+--- a/Lib/locale.py
++++ b/Lib/locale.py
+@@ -215,14 +215,12 @@
+         decimal_point = localeconv()[(monetary and 'mon_decimal_point')
+                                               or 'decimal_point']
+         formatted = decimal_point.join(parts)
+-        if seps:
+-            formatted = _strip_padding(formatted, seps)
+     else:
+         seps = 0
+         if grouping:
+             formatted, seps = _group(formatted, monetary=monetary)
+-        if seps:
+-            formatted = _strip_padding(formatted, seps)
++    if seps:
++        formatted = _strip_padding(formatted, seps)
+     return formatted
+ 
+ def format_string(f, val, grouping=False, monetary=False):

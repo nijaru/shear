@@ -6,7 +6,9 @@ The checked demo now uses **Python and JavaScript in one invocation**: CPython `
 
 The claim is a consistent deterministic structural-cleanup step for humans and agents. Individual rules overlap Ruff/ESLint; do not claim exclusivity, measured agent savings, or general equivalence. Shear does not call a model internally.
 
-The latest user instruction is to **focus on preparation**, with Codex potentially operating the desktop for the eventual recording. Do not build additional recording infrastructure or wait for CI on the recording path. Coordinate desktop access before recording. Codex CLI 0.153.4 is installed; desktop-control capability has not been established merely by finding the CLI.
+The recording operator is the Codex desktop app with computer use and its full tool set. Do not substitute a Codex CLI operator. Desktop access must be verified in the recording session.
+
+The expanded pass also has a checked [Ruff-then-Shear example](NORMALIZATION_EXAMPLE.md): one shared continuation in `locale._localize`, with 66 locale tests and one unchanged skip at all three stages. Use a fresh Ruff-only locale input for this story. The argparse preparation and eight-application counts below describe the earlier `202dc47` fallback, not the expanded binary or locale workflow.
 
 ## Prepared inputs
 
