@@ -9,7 +9,7 @@ use std::{
 };
 use usage::Cli;
 
-/// Deterministic structural simplification. Currently supports Python.
+/// Deterministic structural simplification for Python and JavaScript.
 #[derive(Cli)]
 #[usage(bin = "shear", version = "0.1.0")]
 struct Arguments {
@@ -65,7 +65,7 @@ fn discover(paths: &[PathBuf]) -> Result<BTreeSet<PathBuf>> {
             fs::symlink_metadata(path).with_context(|| format!("inspect {}", path.display()))?;
         if metadata.is_file() {
             ensure!(
-                path.extension().is_some_and(|ext| ext == "py"),
+                shear::Language::from_path(path).is_some(),
                 "unsupported source language: {}",
                 path.display()
             );
@@ -77,10 +77,14 @@ fn discover(paths: &[PathBuf]) -> Result<BTreeSet<PathBuf>> {
             "not a regular file or directory: {}",
             path.display()
         );
-        for entry in WalkBuilder::new(path).follow_links(false).build() {
+        for entry in WalkBuilder::new(path)
+            .follow_links(false)
+            .filter_entry(|entry| entry.depth() == 0 || entry.file_name() != "node_modules")
+            .build()
+        {
             let entry = entry?;
             if entry.file_type().is_some_and(|kind| kind.is_file())
-                && entry.path().extension().is_some_and(|ext| ext == "py")
+                && shear::Language::from_path(entry.path()).is_some()
             {
                 files.insert(fs::canonicalize(entry.path())?);
             }
@@ -103,8 +107,9 @@ fn run(mut args: Arguments) -> Result<bool> {
             path.display()
         );
         let original = fs::read_to_string(&path)?;
+        let language = shear::Language::from_path(&path).context("unsupported source language")?;
         let outcome =
-            shear::simplify_python(&original).with_context(|| path.display().to_string())?;
+            shear::simplify(&original, language).with_context(|| path.display().to_string())?;
         if outcome.source != original {
             pending_bytes += original.len() + outcome.source.len();
             ensure!(
@@ -114,32 +119,30 @@ fn run(mut args: Arguments) -> Result<bool> {
             changes.push((path, original, outcome));
         }
     }
+    let cwd = std::env::current_dir()?;
     for (path, original, outcome) in &changes {
+        let display = path.strip_prefix(&cwd).unwrap_or(path).display();
         if args.diff {
             print!(
                 "{}",
                 TextDiff::from_lines(original, &outcome.source)
                     .unified_diff()
-                    .header(
-                        &format!("a/{}", path.display()),
-                        &format!("b/{}", path.display())
-                    )
+                    .header(&format!("a/{display}"), &format!("b/{display}"))
             );
         }
         if args.explain {
             for rewrite in &outcome.rewrites {
-                eprintln!("{}:{}: {}", path.display(), rewrite.line, rewrite.rule);
+                eprintln!("{display}:{}: {}", rewrite.line, rewrite.rule);
             }
         }
         if !args.check && !args.diff {
             write_checked(path, original, &outcome.source)?;
             eprintln!(
-                "modified {} ({} simplifications)",
-                path.display(),
+                "modified {display} ({} simplifications)",
                 outcome.rewrites.len()
             );
         } else if !args.diff {
-            eprintln!("would simplify {}", path.display());
+            eprintln!("would simplify {display}");
         }
     }
     Ok(args.check && !changes.is_empty())

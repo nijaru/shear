@@ -8,7 +8,7 @@ Current direct dependencies:
 
 | Dependency | Owner/responsibility |
 |---|---|
-| `tree-sitter` + Python grammar | Parse source and provide syntax/source ranges |
+| `tree-sitter` + Python/JavaScript grammars | Parse source and provide syntax/source ranges |
 | `usage-rs` | CLI declarations, parsing, help |
 | `ignore` | Ignore-aware file discovery |
 | `similar` | Unified diffs |
@@ -21,7 +21,7 @@ Current direct dependencies:
 
 Ruff has a Python-specific parser/AST, semantic analysis, source-trivia utilities, code generation, diagnostics/fixes, and a separate formatter. It is not merely textual pattern matching and does not use tree-sitter as its Python frontend.
 
-Use its CLI for behavior comparisons and formatter compatibility. Study rule safety and regression cases. Our initial two rules overlap Ruff; that is acceptable and documented, not a reason to halt the product or claim superiority.
+Use its CLI for behavior comparisons and formatter compatibility. Study rule safety and regression cases. Our Python rules overlap Ruff; that is acceptable and documented, not a reason to halt the product or claim superiority.
 
 Do not embed all of `ruff_linter` today. Its Python-specific model would create integration and representation costs. The internal crates are published, but their Rust APIs have no stability guarantees; deliberate reuse would require version maintenance and a concrete benefit. A future Python backend can adopt its parsing/semantic infrastructure if doing so is simpler than implementing equivalent facts ourselves. Tree-sitter is not a mandatory lowest common denominator.
 

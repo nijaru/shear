@@ -1,4 +1,8 @@
-use shear::simplify_python;
+use shear::{Language, Outcome, simplify};
+
+fn simplify_python(source: &str) -> anyhow::Result<Outcome> {
+    simplify(source, Language::Python)
+}
 use std::{
     io::Write,
     process::{Command, Stdio},

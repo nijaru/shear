@@ -23,6 +23,9 @@ fn check_diff_write_and_idempotence() {
     let diff = run(&["--diff", "--explain", "sample.py"], dir.path());
     assert!(diff.status.success());
     assert!(String::from_utf8_lossy(&diff.stdout).contains("+if a and b:"));
+    assert!(
+        String::from_utf8_lossy(&diff.stdout).starts_with("--- a/sample.py\n+++ b/sample.py\n")
+    );
     assert!(String::from_utf8_lossy(&diff.stderr).contains("merge-nested-if"));
     assert_eq!(fs::read_to_string(&path).unwrap(), SOURCE);
     assert!(run(&["sample.py"], dir.path()).status.success());
@@ -124,4 +127,56 @@ fn help_is_formatter_shaped() {
         assert!(help.contains(flag));
     }
     assert!(!help.contains("--model"));
+}
+
+const JS: &str = "function f(flag) {\n  if (flag) return 1;\n  else {\n    return 2;\n  }\n}\n";
+
+#[test]
+fn mixed_languages_share_preview_write_and_idempotence() {
+    let dir = tempfile::tempdir().unwrap();
+    fs::write(dir.path().join("a.py"), SOURCE).unwrap();
+    for extension in ["js", "mjs", "cjs"] {
+        fs::write(dir.path().join(format!("b.{extension}")), JS).unwrap();
+    }
+    let preview = run(&["--diff", "--explain", "."], dir.path());
+    assert!(preview.status.success());
+    let explanation = String::from_utf8(preview.stderr).unwrap();
+    assert_eq!(explanation.matches("redundant-else").count(), 3);
+    assert_eq!(explanation.matches("merge-nested-if").count(), 1);
+    assert_eq!(fs::read_to_string(dir.path().join("b.js")).unwrap(), JS);
+    assert_eq!(run(&["--check", "."], dir.path()).status.code(), Some(1));
+    assert!(run(&["."], dir.path()).status.success());
+    assert!(run(&["--check", "."], dir.path()).status.success());
+    assert!(
+        !fs::read_to_string(dir.path().join("b.js"))
+            .unwrap()
+            .contains("else")
+    );
+}
+
+#[test]
+fn malformed_second_language_prevents_all_writes() {
+    let dir = tempfile::tempdir().unwrap();
+    fs::write(dir.path().join("a.py"), SOURCE).unwrap();
+    fs::write(dir.path().join("b.js"), "function f( {").unwrap();
+    let output = run(&["."], dir.path());
+    assert_eq!(output.status.code(), Some(2));
+    assert!(String::from_utf8_lossy(&output.stderr).contains("JavaScript"));
+    assert_eq!(fs::read_to_string(dir.path().join("a.py")).unwrap(), SOURCE);
+}
+
+#[test]
+fn discovery_excludes_node_modules_but_explicit_files_are_allowed() {
+    let dir = tempfile::tempdir().unwrap();
+    fs::create_dir(dir.path().join("node_modules")).unwrap();
+    fs::write(dir.path().join("node_modules/dependency.js"), JS).unwrap();
+    assert!(run(&["--check", "."], dir.path()).status.success());
+    assert_eq!(
+        run(&["--check", "node_modules/dependency.js"], dir.path())
+            .status
+            .code(),
+        Some(1)
+    );
+    fs::write(dir.path().join("unsupported.ts"), JS).unwrap();
+    assert_eq!(run(&["unsupported.ts"], dir.path()).status.code(), Some(2));
 }
