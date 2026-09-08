@@ -1,4 +1,6 @@
-# Qualify the real example
+# Qualify demonstration inputs
+
+Current target: one focused real file for each actually demonstrated language, processed in one invocation. The user permits explicitly labeled synthetic rehearsal/fallback inputs, but they must not be presented as independently existing projects. The real-source requirements below apply separately to each upstream project; do not hide different test environments behind one aggregate pass count.
 
 The user's separate session owns discovery. No repository or language is presumed to need cleanup, and no file is selected until a useful deterministic Shear rewrite passes applicable checks. Godotenv has no preferred status.
 
@@ -37,4 +39,4 @@ Use the actual project for validation rather than detaching a file from its pack
 
 After qualification, create `docs/SELECTED_EXAMPLE.md` with exact acquisition/validation commands, source and Shear revisions, rule names, before/after explanation, full diff location, test logs, limitations, and attribution. No runtime model ID belongs in Shear's transformation evidence; record Astra's development or invocation contribution separately.
 
-The one-minute video stays on this one file. Existing tools overlap these initial transformations; novelty must be argued from demonstrated differences, not claimed for structural rewriting as a category.
+The one-minute video stays on the selected file per language and its full affected reading path. Existing tools overlap these initial transformations; novelty must be argued from demonstrated differences, not claimed for structural rewriting as a category.

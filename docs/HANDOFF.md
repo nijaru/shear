@@ -2,6 +2,18 @@
 
 Updated September 8, 2026 after explicit user correction. This replaces the mistaken model-proposal product described in the earlier revision. Original concept supplied in `structural-formatter-handoff.md`: **the transformation engine is the product**.
 
+## Active delivery plan — September 8, 2:40 PM Pacific
+
+The user approved strengthening the demo through actual two-language support. Target one Shear invocation over one checked Python file and one checked JavaScript file. This demonstrates a shared structural-cleanup workflow beyond Ruff's Python scope; it does not establish novel individual rules or superiority over every linter.
+
+1. Qualify a short JavaScript input with unchanged Node tests; `browserify/path-browserify` is a feasibility candidate, not yet qualified. Node v26.8.1 is available; tree-sitter-javascript 0.25.0 is available.
+2. Start with a conservative JavaScript transformation whose scope and evaluation-order preservation can be explained and tested. Do not transfer Python's no-branch-scope assumption. Share parsing/edit/convergence mechanics, keep semantic applicability in the backend.
+3. Add extension dispatch and mixed-language CLI tests; preserve preflight-before-write, comments, stale-input checks, and existing Python behavior. Add only transformations that survive compiler/behavior tests and full-diff review.
+4. Run both real projects' checks before and after the same mixed invocation; verify idempotence, original preservation, full reading paths, hashes, and attribution. Get independent review of the backend.
+5. Rehearse the complete screen sequence, record a sub-minute video, inspect full playback, and prepare submission. Coordinate desktop access first; do not upload without an authorized destination.
+
+Aim to have the mixed workflow checked around 3:30 PM, review/rehearsal around 4:00, and retain the earlier 4:30 recording/5:00 preparation targets before the 5:30 deadline. These are scheduling checkpoints, not a feature freeze or permission to weaken safety. If JavaScript does not qualify, disclose that and use the already-checked Python fallback rather than fabricate coverage. The synthetic delivery-policy rehearsal files are fallback preparation, not the primary product claim.
+
 ## End state
 
 A local, deterministic CLI that humans and coding agents run like a formatter. It rewrites mechanically unnecessary structure toward simpler language-idiomatic forms, then hands presentation to native formatters. No runtime inference, API credentials, helper extraction, generic codemod language, or arbitrary architecture changes.
@@ -12,7 +24,7 @@ Rust is the implementation language. Tree-sitter supplies cross-language syntax 
 
 The goal is useful structural cleanup per human/agent invocation, not exclusive ownership of every rewrite. Overlap with Ruff, Clippy, ESLint, or other autofixers is acceptable. Do not gate progress on finding a novel rule or claim that those tools lack semantic analysis.
 
-**Today:** build one coherent Python control-flow normalization pass: flattening, guards, and redundant paths; preserve behavior/comments, converge, and demonstrate a useful combined result in real code. Keep the current dependencies and use Ruff externally for comparison and formatter compatibility. Do not embed its full engine or expand languages merely for a feature count.
+**Today:** build on the checked Python pass to demonstrate useful Python and JavaScript cleanup in one invocation. Preserve behavior/comments and convergence with language-specific safety, not parser-only support. Keep the shared engine small; add the required grammar through Cargo. Use Ruff/ESLint externally for comparison rather than claim their overlapping fixes are missing.
 
 **Long term:** reduce recurring manual and agent cleanup across languages. Develop shared edit/convergence mechanics and language-specific syntax, binding, termination, effect, and type facts as needed. Tree-sitter is the common syntax entry point, not a restriction against richer backends. Agent time savings and fewer iterations are hypotheses to measure, not current performance claims. Naming, architecture, and intent remain human/agent responsibilities.
 

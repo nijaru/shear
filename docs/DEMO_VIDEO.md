@@ -1,5 +1,11 @@
 # One-minute demo workflow
 
+## Revised demo target
+
+The user approved a two-language demonstration: one real Python file plus one real JavaScript file, cleaned in one invocation. See `HANDOFF.md` for the active implementation and validation plan. JavaScript is not supported yet; do not record or advertise it until actual tests and source review qualify it. Existing Python evidence below remains the fallback. Synthetic delivery-policy files are rehearsal support only.
+
+The final story should show the common command, both complete affected reading paths, separately named checks for each project, and an unchanged second run. If inputs come from two upstream repositories assembled into a demo workspace, say so—do not imply it is one existing mixed-language application. Individual rule overlap with Ruff/ESLint is expected; the claim is a demonstrated shared workflow, not invented exclusivity.
+
 ## Current checked input
 
 Recording is paused. The fixes and integration audit in `REVIEW.md` have produced a newly checked, smaller patch; the selected input is not frozen.

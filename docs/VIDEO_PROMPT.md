@@ -2,7 +2,7 @@
 
 Produce the one-minute Shear demonstration from a real checked deterministic transformation. Read `DEMO_VIDEO.md`, `SELECTED_EXAMPLE.md` if present, and the current README/CLI. If no useful real result has qualified, report that blocker and complete authorized preparation without fabricating a showcase.
 
-Show one real file: its concrete structural problem, actual Shear invocation, the full relevant before/after, named checks, and an unchanged second run. Credit evidenced Astra development/invocation contributions. Shear has no internal model, API request, or generated proposal.
+Current target is one real file per supported demo language (Python and JavaScript), processed in one invocation: concrete structural problems, full relevant before/after, separately named project checks, and an unchanged second run. Clearly label inputs assembled from different repositories; synthetic rehearsal/fallback inputs are permitted only with explicit provenance. Do not claim JavaScript support until it is implemented and qualified. Credit evidenced Astra development/invocation contributions. Shear has no internal model, API request, or generated proposal.
 
 Use CLI tools for checkout preparation, capture scripting, editing, encoding, and media checks. Use desktop/browser tools for framing and playback QA when available. Do not bypass OS permissions or build a custom video application. Captions can replace narration if necessary.
 
