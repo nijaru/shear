@@ -1,8 +1,10 @@
 # Shear: independently researched demo targets
 
-Reviewed September 8, 2026. This is a separate research note for the active Codex build. It does not change implementation files, AGENTS.md, or the product contract.
+> **Historical research, not the current execution plan.** This independent report arrived during the September 8 product correction. Its source identities and reported baseline observations are retained as research evidence, not locally reverified results. Its model trials, extraction proposals, Go-only ranking, and CLI assumptions are superseded by `HANDOFF.md`. Current Shear is an offline Rust/tree-sitter formatter with Python rules; these Go targets require a future supported deterministic rule before they can qualify. Do not execute the old proposed model workflow.
 
-## Decision for the next model trial
+Reviewed September 8, 2026 by a separate research session.
+
+## Historical recommendation for the former model trial
 
 **Try `dustin/go-humanize/number.go` -> `FormatFloat` first. Try `google/go-querystring/query/encode.go` -> `reflectValue` second.** Keep each surrounding repository intact for the actual Shear run. The video can stay on one changed file.
 
@@ -124,7 +126,7 @@ Exercise through exported query.Values. Compare url.Values semantically while re
 
 **Go-version constructors rejected:** `4f9dad4645ee2935418c5eb169ab05976abeaf6b`, `version.go`, source lines 1-180, blob `34735323e919fabf2ac62785949fc44a574e67f1`. No sufficiently substantial cleanup identified in NewVersion/newVersion. No tests run. Header identifies MPL-2.0; full licensing not reviewed because this candidate was rejected on demo grounds. [Source](https://github.com/hashicorp/go-version/blob/4f9dad4645ee2935418c5eb169ab05976abeaf6b/version.go)
 
-## Integrate without interrupting the build
+## Historical integration instructions (superseded)
 
 Fetch origin and read `git show origin/main:docs/TARGET_RESEARCH.md`; this does not require switching/resetting the active checkout. Integrate documentation normally when convenient.
 

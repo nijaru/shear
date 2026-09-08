@@ -1,31 +1,41 @@
-# Sources and evidence boundaries
+# Sources and provenance
 
-Updated September 8, 2026. These references support tooling capabilities. The proposed architecture, search time boxes, and storyboard are design choices, not empirical results.
+## Product authority
 
-## User-provided basis
+The user supplied the original `structural-formatter-handoff.md` and explicitly clarified the current product during September 8 development:
 
-The participant guide pasted in the planning conversation supplies the September 8 event schedule, 10:30 AM–5:30 PM build window, public-repository requirement, one-minute submission video, three-minute finalist demo plus two-minute Q&A, and four equal judging weights. It prohibits a dashboard as the main feature and requires identifying event-built work and respecting source/asset rights. It gives two different finalist start times; that remains an organizer question. Private venue/access details are intentionally omitted.
+- Deterministic, local, cross-language structural formatting.
+- Astra develops and invokes Shear; no inference inside Shear.
+- Rust + tree-sitter, with source-language choice independent of implementation language.
+- Transformation is the product; metrics support it, not replace it.
 
-The user's latest decisions are: the name is Shear; the repository already exists; explore real files without assuming godotenv is good; one file is sufficient for the demo; repository-wide inspection may provide context; and use Codex with CLI/desktop capabilities to produce the video.
+The early repository handoff mistakenly recast this as Go plus runtime model proposals. Git history preserves that planning; it is superseded, not implementation evidence. An uncommitted Go prototype was set aside before the Rust implementation.
 
-Public event and submission reference: https://cerebralvalley.ai/e/openai-gpt-6-astra-sf . This handoff does not claim the public page independently confirms every detail of the supplied guide.
+## Technical references
 
-## Primary tooling references inspected
+- Tree-sitter Rust API: https://docs.rs/tree-sitter/latest/tree_sitter/
+- Python grammar: https://github.com/tree-sitter/tree-sitter-python
+- usage-rs CLI: https://usage.jdx.dev/rust/
+- Python control-flow semantics: https://docs.python.org/3/reference/compound_stmts.html
+- Python expression/Boolean semantics: https://docs.python.org/3/reference/expressions.html
+- Native Go modernization precedent: https://go.dev/blog/gofix
+- Ruff rule reference (compare overlapping fixes): https://docs.astral.sh/ruff/rules/
+- Clippy: https://doc.rust-lang.org/clippy/
+- OpenRewrite: https://github.com/openrewrite/rewrite
+- ast-grep: https://github.com/ast-grep/ast-grep
+- Ripwire analysis reference from the original concept: https://github.com/redhat-et/ripwire
+- FFmpeg: https://ffmpeg.org/ffmpeg.html
+- ffprobe: https://ffmpeg.org/ffprobe.html
+- VHS: https://github.com/charmbracelet/vhs
 
-- Go AST: https://pkg.go.dev/go/ast
-- Typed package loading: https://pkg.go.dev/golang.org/x/tools/go/packages
-- Gocognit and native-AST metrics: https://pkg.go.dev/github.com/uudashr/gocognit
-- Official OpenAI SDKs: https://developers.openai.com/api/docs/libraries
-- Codex project instructions: https://developers.openai.com/codex/guides/agents-md/ (currently redirects to https://learn.chatgpt.com/docs/agent-configuration/agents-md)
-- Computer Use availability/permissions: https://developers.openai.com/codex/app/computer-use/ (currently redirects to https://learn.chatgpt.com/docs/computer-use)
-- VHS terminal scripting, dependencies, output formats, and waits: https://github.com/charmbracelet/vhs/blob/08ec20e6cc826970cde5e34c9596dfe67cf0dcbc/README.md
-- FFmpeg encoding, mapping, and editing options: https://ffmpeg.org/ffmpeg.html
-- ffprobe metadata and duration inspection: https://ffmpeg.org/ffprobe.html
+References establish capabilities or comparison targets, not Shear correctness or novelty. `Cargo.lock` records selected versions; source/tests and `BUILD_LOG.md` record actual implementation evidence.
 
-Choose and record actual working dependency/model versions on the build machine. Documentation support does not establish availability in a specific Codex session.
+## Event basis
 
-## Not established by this handoff
+The user-provided participant guide supplies the September 8, 2026 Pacific schedule: hacking 10:30 AM–5:30 PM, public repository and accessible one-minute video, four equally weighted categories (Astra in development, Astra in project, live demo, technical implementation), and five finalists with three-minute demos plus two-minute questions. Its stage schedule lists both 6:45 and 7:00 PM; confirm separately.
 
-No candidate repository has qualified; no baseline, generated refactor, benchmark, user-machine setup, capture pipeline, or finished video has been tested here. Old godotenv source inspection is not a selection decision. The local implementation session must supply the candidate evidence and actual results.
+Public event reference: https://cerebralvalley.ai/e/openai-gpt-6-astra-sf . This document does not claim independent verification of the guide or that agent invocation alone satisfies the organizers' “Astra in project” criterion. Do not distort the product to guess at that criterion; clarify with organizers if needed. Private access details are not publication material.
 
-The supplied earlier handoffs were reviewed for context, but the documents in this repository replace their conflicting name, fixture, scope, and workflow instructions. The repository update is documentation-only and retains the planning provenance.
+## Evidence not yet established
+
+No real-project example, cross-language rewrite parity, speed benchmark, final video, or submission has qualified merely because the prototype builds. Record those independently when actually verified. Preserve upstream attribution and licenses in published excerpts; do not claim a repository-wide license absent an explicit choice.

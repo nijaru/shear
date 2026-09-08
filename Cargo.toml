@@ -1,0 +1,13 @@
+[package]
+name = "shear"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.104"
+ignore = "0.4.33"
+similar = "3.2.0"
+tempfile = "3.27.0"
+tree-sitter = "0.27.0"
+tree-sitter-python = "0.25.0"
+usage = { version = "6.8.0", package = "usage-rs" }

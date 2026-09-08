@@ -1,15 +1,11 @@
-# Codex video-production prompt
+# Video production task
 
-Use after Shear has a real checked result. Run in the existing local project environment with any available screen/desktop permissions reviewed by the user.
+Produce the one-minute Shear demonstration from a real checked deterministic transformation. Read `DEMO_VIDEO.md`, `SELECTED_EXAMPLE.md` if present, and the current README/CLI. If no useful real result has qualified, report that blocker and complete authorized preparation without fabricating a showcase.
 
----
+Show one real file: its concrete structural problem, actual Shear invocation, the full relevant before/after, named checks, and an unchanged second run. Credit evidenced Astra development/invocation contributions. Shear has no internal model, API request, or generated proposal.
 
-Produce the one-minute Shear hackathon demo using the implemented tool and real run artifacts. Read `docs/DEMO_VIDEO.md`, `docs/SELECTED_EXAMPLE.md` if present, and the actual README/CLI. Confirm the chosen source revision, real diff, passing checks, and saved run identity. If those do not exist, report that blocker and help complete the minimum real run; do not fabricate footage or results.
+Use CLI tools for checkout preparation, capture scripting, editing, encoding, and media checks. Use desktop/browser tools for framing and playback QA when available. Do not bypass OS permissions or build a custom video application. Captions can replace narration if necessary.
 
-Keep the story on one file from a real project. Show the concrete problem, invoke Shear, explain the actual structural improvement, show named checks and one preserved behavior, and finish with the reviewed patch. Include a concise, evidence-backed note on Astra's development contribution.
+Retain raw footage and command logs, tying all results to exact source and Shear revisions. Label replay and accelerated/cut waits. Never fake commands, patches, or passing checks.
 
-Use CLI tools to prepare a disposable input, capture execution, edit, encode, and inspect media. Use VHS only if a short smoke test works; otherwise use the existing screen recorder. Use desktop/browser tools for arranging the view and checking legibility when available. Do not assume desktop access, bypass OS permissions, or create a new video framework. Ask for human narration/permissions only when genuinely needed; captions are an acceptable fallback.
-
-Retain the raw recording and logs. Label replay and accelerated/cut waits. Keep all depicted results tied to the same identified run, including full helper code in review. Never substitute printed successes or a hardcoded patch for execution.
-
-Export a playable MP4 under sixty seconds, preferably 55–59 seconds, with readable code and intelligible narration or captions. Verify duration/streams using ffprobe and watch the full playback; inspect frames as needed. Save the capture/edit commands, narration/captions, source/run provenance, and QA notes. Do not claim recording or review you could not perform. Prepare the file for the user's sharing route; obtain approval before an unrequested external upload. Keep private credentials, unrelated screens, and large raw artifacts out of Git.
+Export a playable MP4 under sixty seconds, preferably 55–59. Verify streams/duration with ffprobe and review full playback at normal size. Save capture/edit commands, captions/narration, provenance, and QA limitations. Prepare for the user's authorized sharing route; ask before unrequested external upload. Keep private data and large media out of Git.

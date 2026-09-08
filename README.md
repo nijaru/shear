@@ -1,23 +1,58 @@
 # Shear
 
-A structural formatter for code.
+A structural formatter: deterministically simplify code structure, not whitespace.
 
-Shear is being built for the September 8, 2026 GPT-6 Astra hackathon. The intended workflow is to find a worthwhile structural cleanup, ask Astra for a bounded refactor, check the result, and present the exact patch for review.
+Shear runs locally without a model or API key. Humans and coding agents invoke it after editing code. The product is cross-language; the current Rust/tree-sitter prototype supports **Python only**, with two conservative rules: remove redundant `else` after an explicit exit, and merge nested conditions without alternatives.
 
-**Status at this handoff:** planning documents only. No implementation, qualified demo file, successful refactor, benchmark result, or demo video is claimed.
+## Build and run
 
-## Start here
+Requires Rust/Cargo. Development has been checked with Rust 1.98.1 on macOS; behavioral tests also require `python3`.
 
-Open this repository in a fresh local Codex session, select the available Astra model, and use [the kickoff prompt](docs/KICKOFF_PROMPT.md).
+```sh
+cargo build --release
+./target/release/shear --diff --explain path/to/code.py
+./target/release/shear path/to/code.py
+./target/release/shear --check path/to/project
+```
 
-| Document | Purpose |
-|---|---|
-| [Handoff](docs/HANDOFF.md) | Product scope, build sequence, checks, and event constraints |
-| [Example selection](docs/EXAMPLE_SELECTION.md) | Find and qualify a real file rather than assume a repository needs cleanup |
-| [Demo video](docs/DEMO_VIDEO.md) | CLI-first capture, optional desktop use, editing, and submission QA |
-| [Video agent prompt](docs/VIDEO_PROMPT.md) | Produce the recording once the tool has a qualified result |
-| [Sources](docs/SOURCES.md) | Event-source distinction and primary tool references |
+Default invocation writes changed files. `--diff` previews without writing. `--check` writes nothing and exits 1 if simplifications are available, 0 otherwise; errors exit 2. With no paths, Shear scans the current directory. Directory discovery respects ignore files and skips hidden files and symlinks; explicitly named files bypass ignore rules.
 
-The main demo will follow one file from a real project. Repository inspection provides context; validation uses its real package/project. Broader project scanning is useful when it saves selection effort, but a multi-file demonstration is not required.
+For example:
 
-These documents consolidate earlier planning and the latest scope decisions. Keep that provenance distinct from implementation and recorded results produced during the event. Update this README with tested commands and actual limitations as the product becomes usable.
+```python
+if authorized:
+    if enabled:
+        run()
+```
+
+becomes:
+
+```python
+if (authorized) and (enabled):
+    run()
+```
+
+Run your native formatter and normal compiler/linter/tests afterward. Shear does not invoke them internally.
+
+## Current limits
+
+This is an early prototype, not a general refactoring engine. It skips uncertain syntax such as comments in rewrite regions, multiline strings, tabs, and named expressions. Rules reparse after each edit and converge to an unchanged second run. Inputs are limited to 2 MiB per file and 1,024 rewrites per file; pending original/result bytes are capped at 64 MiB per invocation. Parse checks are not type checking or proof of equivalence.
+
+Writes preserve permissions and check for stale bytes before replacement. Stop concurrent writers; the comparison and replacement are not a filesystem transaction. A filesystem failure can leave an already-written portion of a multi-file batch. Use a version-controlled working tree.
+
+No real-project showcase has qualified yet. No novelty or universal readability claim is made for these initial rules; they overlap existing lint fixes.
+
+## Development
+
+```sh
+cargo fmt --check
+cargo test
+cargo clippy --all-targets --all-features -- -D warnings
+```
+
+- [Architecture and roadmap](docs/HANDOFF.md)
+- [Rule safety contracts](docs/RULES.md)
+- [Real-example selection](docs/EXAMPLE_SELECTION.md)
+- [Video workflow](docs/DEMO_VIDEO.md)
+- [Build evidence and limitations](docs/BUILD_LOG.md)
+- [Sources and provenance](docs/SOURCES.md)

@@ -1,0 +1,35 @@
+# Rewrite contracts
+
+These are the current Python rules, not generic cross-language equivalence laws. Implementation: `src/python.rs`. Positive/negative and behavioral evidence: `tests/rewrites.rs`.
+
+## Shared applicability
+
+Tree-sitter must parse the entire UTF-8 file without errors. Skip a proposed region containing comments, tabs, carriage returns, named expressions, or multiline strings. This deliberately favors skipped opportunities over changing trivia or scope-sensitive syntax. Skip one-line suites where lifting would require reconstructing layout. Source positions are byte ranges, not character indices.
+
+Shear does not preserve source-location introspection, debugger line numbers, traceback locations, coverage positions, or bytecode identity: moving source inherently changes those observations. Behavior preservation here concerns ordinary program values, effects, exceptions, binding, and control flow. Do not apply to code whose contract depends on source layout.
+
+## `redundant-else`
+
+Trigger: an `if` has a plain `else`, and the final direct statement of its consequence is `return`, `raise`, `break`, or `continue`.
+
+Action: remove the `else` header and dedent its suite into the containing block. Preserve the original condition and the terminating branch. Elif chains are not handled. Trailing comments on the affected final line cause a skip.
+
+Reason: the taken consequence cannot reach the lifted suite. Python has no branch-local variable scope. Moving the suite one block outward does not cross a loop, function, exception handler, or context-manager boundary. Exit-looking calls are not treated as guaranteed termination.
+
+Check: syntax, idempotence, nested contexts, early returns, raises, loop break/continue, and output/effect comparisons. Dynamic source introspection remains outside the contract above.
+
+## `merge-nested-if`
+
+Trigger: an `if` suite contains exactly one nested `if`, and neither conditional has an alternative. Both conditions occupy one physical line; the inner suite occupies later lines.
+
+Action: replace with `if (outer) and (inner):` and dedent the inner suite one level. Parentheses preserve expression grouping; native presentation normalization is left to the user's formatter.
+
+Reason: Python's short-circuit condition evaluates and tests the outer expression first, and evaluates/tests the inner expression only when the outer succeeds. No declarations move across a scope boundary. This reasoning is specific to condition context and must not be generalized to replacing arbitrary Boolean-valued expressions.
+
+Check: nested convergence, effectful truthiness (`__bool__`), evaluation order, negative alternatives, comments, multiline strings, Unicode, and malformed input.
+
+## Engine guarantees and limits
+
+One deterministic preorder-selected edit is applied per pass, followed by a full reparse. Every current rule removes one conditional or alternative, giving a decreasing structural measure. After 1,024 edits the engine fails rather than writing a partial result. It also refuses files over 2 MiB. Two runs must produce identical source; tests enforce this.
+
+The initial implementation does not provide type analysis, complexity scoring, diagnostic-only smells, automatic native formatting, Git-changed selection, or additional language backends. Add those only with a concrete purpose and corresponding checks.
