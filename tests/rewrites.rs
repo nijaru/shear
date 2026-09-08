@@ -42,7 +42,7 @@ fn turns_terminal_else_into_guard() {
 
 #[test]
 fn guard_then_flattens_nested_flow() {
-    let source = "def f(a, b, c):\n    if a:\n        if b:\n            if c:\n                work()\n    else:\n        raise ValueError()\n";
+    let source = "def f(a, b, c):\n    if a:\n        if b:\n            if c:\n                work()\n    else:\n        return\n";
     let outcome = simplify_python(source).unwrap();
     assert_eq!(
         outcome.rewrites.iter().map(|r| r.rule).collect::<Vec<_>>(),
@@ -50,7 +50,7 @@ fn guard_then_flattens_nested_flow() {
     );
     assert_eq!(
         transformed(source),
-        "def f(a, b, c):\n    if not (a):\n        raise ValueError()\n    if (b) and (c):\n        work()\n"
+        "def f(a, b, c):\n    if not (a):\n        return\n    if (b) and (c):\n        work()\n"
     );
 }
 
@@ -88,6 +88,40 @@ fn skips_uncertain_regions() {
         "def f(a):\n    if a:\n        work()\n    # between suites\n    else:\n        return 0\n",
     ] {
         assert_eq!(transformed(source), source, "unexpected rewrite: {source}");
+    }
+}
+
+#[test]
+fn guard_preserves_declaration_order() {
+    for source in [
+        "x = 42\ndef f(flag):\n    if flag:\n        global x\n        x = 7\n    else:\n        return x\n    return x\nprint(f(False), f(True))\n",
+        "def outer():\n    x = 42\n    def f(flag):\n        if flag:\n            nonlocal x\n            x = 7\n        else:\n            return x\n        return x\n    return f(False), f(True)\nprint(outer())\n",
+        "x = 42\ndef f(flag):\n    if flag:\n        for _ in range(1):\n            global x\n            x = 7\n    else:\n        return x\n    return x\nprint(f(False), f(True))\n",
+    ] {
+        let result = transformed(source);
+        assert_eq!(execute(source), execute(&result));
+        assert_eq!(result, source);
+    }
+}
+
+#[test]
+fn preserves_form_feed_indentation() {
+    let source = "def f(x):\n    if x:\n        return 1\n    else:\n        value = 1\n        \x0c        value = 2\n    return value\nprint(f(False))\n";
+    let result = transformed(source);
+    assert_eq!(execute(source), execute(&result));
+    assert_eq!(result, source);
+}
+
+#[test]
+fn guard_preserves_local_order_and_finalizers() {
+    for source in [
+        "def f(ok):\n    if ok:\n        a = 1\n    else:\n        b = 2\n        return []\n    b = 3\n    return list(locals())\nprint(f(True))\n",
+        "events = []\nclass Resource:\n    def __init__(self, name):\n        self.name = name\n    def __del__(self):\n        events.append(self.name)\ndef f(ok):\n    if ok:\n        a = Resource('a')\n    else:\n        b = Resource('unused')\n        return\n    b = Resource('b')\nf(True)\nprint(events)\n",
+        "def f(ok):\n    if ok:\n        a = 1\n    else:\n        print(b)\n        return []\n    b = 3\n    return list(locals())\nprint(f(True))\n",
+    ] {
+        let result = transformed(source);
+        assert_eq!(execute(source), execute(&result));
+        assert_eq!(result, source);
     }
 }
 
@@ -257,7 +291,7 @@ print(events, [compare(x) for x in [-1, 0, float('nan')]], loop())
             .iter()
             .filter(|r| r.rule == "guard-clause")
             .count(),
-        4
+        3
     );
     assert_eq!(execute(source), execute(&result.source));
     assert_eq!(transformed(source), result.source);

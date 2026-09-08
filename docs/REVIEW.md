@@ -1,6 +1,6 @@
 # Correctness and code-quality review
 
-September 8, 2026. Reviewed implementation `8d055d3` (engine unchanged since `f573755`). This review supersedes any implication that a passing argparse demonstration establishes general readiness. **No feature freeze is in force. Recording remains paused at the user's request.** No formatter implementation was changed during this review.
+September 8, 2026. Reviewed implementation `8d055d3` (engine unchanged since `f573755`). This review supersedes any implication that a passing argparse demonstration establishes general readiness. **No feature freeze is in force. Recording remains paused at the user's request.** No formatter implementation was changed during the initial review. Follow-up implementation now skips declaration-containing guard regions and rejects explicit symlinked path components. Both findings first failed new regressions, then passed after the fixes; the original findings below remain as provenance. The deeper audit additionally reproduced form-feed indentation corruption and CPython local-slot/finalizer-order changes. Form-feed regions are now skipped, and guards cannot move names across names; new compiler/behavior regressions failed before these fixes and pass afterward. This deliberately reduces guard applicability rather than redefining observable effects out of the contract. All 23 repository tests and the fresh upstream argparse rehearsal pass. Output-quality work continues.
 
 ## Findings
 

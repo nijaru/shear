@@ -101,6 +101,7 @@ def main():
     parser.add_argument("--out", required=True, type=Path)
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=False)
+    args.out = args.out.resolve()
     binary = str(args.shear.resolve())
     script = str(Path(__file__).resolve())
     stdlib = Path(sysconfig.get_path("stdlib"))

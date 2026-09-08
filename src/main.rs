@@ -37,16 +37,32 @@ fn main() -> ExitCode {
     }
 }
 
+fn reject_symlink_components(path: &Path) -> Result<()> {
+    // Inspect lexical ancestors before canonicalization: normalizing `link/..`
+    // first would conceal the very traversal this policy rejects.
+    let ancestors: Vec<_> = path
+        .ancestors()
+        .filter(|p| !p.as_os_str().is_empty())
+        .collect();
+    for component in ancestors.into_iter().rev() {
+        ensure!(
+            !fs::symlink_metadata(component)
+                .with_context(|| format!("inspect {}", component.display()))?
+                .file_type()
+                .is_symlink(),
+            "symlink path component unsupported: {}",
+            component.display()
+        );
+    }
+    Ok(())
+}
+
 fn discover(paths: &[PathBuf]) -> Result<BTreeSet<PathBuf>> {
     let mut files = BTreeSet::new();
     for path in paths {
+        reject_symlink_components(path)?;
         let metadata =
             fs::symlink_metadata(path).with_context(|| format!("inspect {}", path.display()))?;
-        ensure!(
-            !metadata.file_type().is_symlink(),
-            "symlink input unsupported: {}",
-            path.display()
-        );
         if metadata.is_file() {
             ensure!(
                 path.extension().is_some_and(|ext| ext == "py"),

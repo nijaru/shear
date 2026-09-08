@@ -74,6 +74,33 @@ fn symlinks_are_not_written_and_permissions_survive() {
     );
 }
 
+#[cfg(unix)]
+#[test]
+fn rejects_symlinked_ancestors_before_any_batch_write() {
+    use std::os::unix::fs::symlink;
+    let dir = tempfile::tempdir().unwrap();
+    let root = fs::canonicalize(dir.path()).unwrap();
+    fs::create_dir(root.join("outside")).unwrap();
+    fs::write(root.join("outside/target.py"), SOURCE).unwrap();
+    fs::write(root.join("local.py"), SOURCE).unwrap();
+    symlink(root.join("outside"), root.join("linked")).unwrap();
+    let absolute = root.join("linked/target.py");
+    for path in [
+        "linked/target.py",
+        absolute.to_str().unwrap(),
+        "linked/../local.py",
+    ] {
+        let output = run(&["local.py", path], &root);
+        assert_eq!(output.status.code(), Some(2));
+        assert!(String::from_utf8_lossy(&output.stderr).contains("symlink"));
+        assert_eq!(fs::read_to_string(root.join("local.py")).unwrap(), SOURCE);
+        assert_eq!(
+            fs::read_to_string(root.join("outside/target.py")).unwrap(),
+            SOURCE
+        );
+    }
+}
+
 #[test]
 fn help_is_formatter_shaped() {
     let dir = tempfile::tempdir().unwrap();

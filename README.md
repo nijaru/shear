@@ -36,7 +36,7 @@ Run your native formatter and normal compiler/linter/tests afterward. Shear does
 
 ## Current limits
 
-**Known correctness defect:** guard rewrites involving `global`/`nonlocal` declarations can produce uncompilable Python that `--check` still accepts. Do not rely on the current engine for unattended edits. The [review](docs/REVIEW.md) also records a symlink-boundary mismatch and mixed readability in the demo output; fixes are pending.
+The [review](docs/REVIEW.md) found declaration-order and path-policy defects, now protected by regression tests: guards skip declaration-containing regions and swaps that move names across names, and explicit paths reject symlinked components before canonicalization. The guard restriction also preserves CPython local-variable/finalizer ordering; form-feed regions are skipped to avoid indentation corruption. This includes aliases such as macOS `/tmp`; supply the real path (for example `/private/tmp`) or run from the physical directory. Concurrent path replacement remains unsupported. Output-quality improvements and further auditing are ongoing; do not treat syntax checks as a substitute for Python compilation and project tests.
 
 This is an early prototype, not a general refactoring engine. It preserves ordinary suite comments but skips tooling directives, ambiguous comment placement, multiline strings, tabs, and named expressions. Rules reparse after each edit and converge to an unchanged second run. Inputs are limited to 2 MiB per file and 1,024 rewrites per file; pending original/result bytes are capped at 64 MiB per invocation. Parse checks are not type checking or proof of equivalence.
 

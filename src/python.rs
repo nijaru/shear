@@ -21,7 +21,7 @@ pub(super) fn next_edit(root: Node<'_>, source: &str) -> Option<Edit> {
 }
 
 fn safe_region(root: Node<'_>, source: &str) -> bool {
-    if source[root.byte_range()].contains(['\t', '\r']) {
+    if source[root.byte_range()].contains(['\t', '\r', '\x0c']) {
         return false;
     }
     let mut pending = vec![root];
@@ -150,6 +150,18 @@ fn directly_terminates(block: Node<'_>) -> bool {
         })
 }
 
+fn contains_kind(root: Node<'_>, kinds: &[&str]) -> bool {
+    let mut pending = vec![root];
+    while let Some(node) = pending.pop() {
+        if kinds.contains(&node.kind()) {
+            return true;
+        }
+        let mut cursor = node.walk();
+        pending.extend(node.named_children(&mut cursor));
+    }
+    false
+}
+
 fn guard_clause(node: Node<'_>, source: &str) -> Option<Edit> {
     let alternative = node.child_by_field_name("alternative")?;
     if alternative.kind() != "else_clause" {
@@ -158,6 +170,17 @@ fn guard_clause(node: Node<'_>, source: &str) -> Option<Edit> {
     let consequence = node.child_by_field_name("consequence")?;
     let exit_body = alternative.child_by_field_name("body")?;
     if directly_terminates(consequence) || !directly_terminates(exit_body) {
+        return None;
+    }
+    // Python requires declarations to precede uses in textual order, even in
+    // mutually exclusive suites. Reordering can violate this compiler constraint.
+    if contains_kind(node, &["global_statement", "nonlocal_statement"]) {
+        return None;
+    }
+    // Even reads affect CPython's local-slot ordering and hence observable
+    // locals()/finalizer order. Do not move names across names without scope
+    // analysis; an identifier-free suite cannot reorder symbol encounters.
+    if contains_kind(consequence, &["identifier"]) && contains_kind(exit_body, &["identifier"]) {
         return None;
     }
     let condition = node.child_by_field_name("condition")?;

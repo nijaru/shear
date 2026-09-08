@@ -4,7 +4,7 @@ These are the current Python rules, not generic cross-language equivalence laws.
 
 ## Shared applicability
 
-Tree-sitter must parse the entire UTF-8 file without errors. Skip a proposed region containing tabs, carriage returns, named expressions, multiline strings, or recognized tooling directives (`type:`, `fmt:`, `ruff:`, `noqa`, `nosec`, `pylint:`, `pyright:`, `mypy:`, `isort:`, `pragma:`, `doctest:`). Skip one-line suites where lifting would require reconstructing layout. Source positions are byte ranges, not character indices.
+Tree-sitter must parse the entire UTF-8 file without errors. Skip a proposed region containing tabs, carriage returns, form feeds, named expressions, multiline strings, or recognized tooling directives (`type:`, `fmt:`, `ruff:`, `noqa`, `nosec`, `pylint:`, `pyright:`, `mypy:`, `isort:`, `pragma:`, `doctest:`). Skip one-line suites where lifting would require reconstructing layout. Source positions are byte ranges, not character indices.
 
 Ordinary leading, inline, and trailing suite comments travel with their suite. Tree-sitter places leading comments outside the block node, so suite slices begin after the header newline. Skip comments attached to a header that must be rewritten, under-indented comments with ambiguous ownership, and comments between a pair of conditions that would be merged. Guard rewrites also skip comments between suites that cannot be assigned safely.
 
@@ -36,7 +36,7 @@ Check: nested convergence, effectful truthiness (`__bool__`), evaluation order, 
 
 Trigger: an `if` has a plain `else` whose final direct statement is `return`, `raise`, `break`, or `continue`, while the consequence does not directly terminate. Both suites are multiline and the condition occupies one physical line. Shared conservative exclusions still apply.
 
-Action: invert the condition with `not (condition)`, place the exiting suite first, and lift the normal suite after the guard. Do not invert comparison operators: NaN, overloaded comparisons, and non-Boolean comparison results make that a different operation. An exiting consequence is handled by `redundant-else` instead, so the rules do not alternate branch order.
+Action: invert the condition with `not (condition)`, place the exiting suite first, and lift the normal suite after the guard. Do not invert comparison operators: NaN, overloaded comparisons, and non-Boolean comparison results make that a different operation. An exiting consequence is handled by `redundant-else` instead, so the rules do not alternate branch order. Guard reordering skips regions containing `global` or `nonlocal` declarations, conservatively including nested scopes: Python requires textual declaration-before-use ordering even across mutually exclusive branches. Removing nesting without reordering is not subject to this exclusion. Additionally, at least one moved suite must contain no identifiers: moving names across names can change CPython's first symbol-encounter order, local-slot order, `locals()` order, and finalizer effects even when neither branch declares a new scope. Bare exits and literal returns remain useful safe cases; effectful named exits may be skipped until adequate scope analysis exists.
 
 Reason: the original condition is truth-tested once; exactly one original suite executes. The exit prevents the lifted normal suite from executing on the false path. Python branch suites do not create binding scopes, and neither suite crosses its enclosing loop, function, exception handler, or context manager.
 
