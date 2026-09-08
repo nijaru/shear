@@ -1,53 +1,46 @@
 # One-minute demo workflow
 
-## Revised demo target
+## Current status and claim
 
-The user approved a two-language demonstration: one real Python file plus one real JavaScript file, cleaned in one invocation. See `HANDOFF.md` for the active implementation and validation plan. JavaScript is not supported yet; do not record or advertise it until actual tests and source review qualify it. Existing Python evidence below remains the fallback. Synthetic delivery-policy files are rehearsal support only.
+The checked demo now uses **Python and JavaScript in one invocation**: CPython `argparse.py` and path-browserify `index.js`. These are two real projects assembled for the demo, not one existing mixed-language application. See [MIXED_EXAMPLE.md](MIXED_EXAMPLE.md) for complete reading-path review, checks, identities, limitations, and reproduction.
 
-The final story should show the common command, both complete affected reading paths, separately named checks for each project, and an unchanged second run. If inputs come from two upstream repositories assembled into a demo workspace, say so—do not imply it is one existing mixed-language application. Individual rule overlap with Ruff/ESLint is expected; the claim is a demonstrated shared workflow, not invented exclusivity.
+The claim is a consistent deterministic structural-cleanup step for humans and agents. Individual rules overlap Ruff/ESLint; do not claim exclusivity, measured agent savings, or general equivalence. Shear does not call a model internally.
 
-## Current checked input
+The latest user instruction is to **focus on preparation**, with Codex potentially operating the desktop for the eventual recording. Do not build additional recording infrastructure or wait for CI on the recording path. Coordinate desktop access before recording. Codex CLI 0.153.4 is installed; desktop-control capability has not been established merely by finding the CLI.
 
-Recording is paused. The fixes and integration audit in `REVIEW.md` have produced a newly checked, smaller patch; the selected input is not frozen.
+## Prepared inputs
 
-Use CPython v3.14.7 `Lib/argparse.py`; see `SELECTED_EXAMPLE.md`. `demo/run_cpython.py` has been rehearsed and produces real baseline/rewrite/candidate/idempotence evidence in a new checkout. Current result at `8cf6242`: six rule applications (four redundant-else removals, two short condition merges); 1,894 upstream module tests pass before and after, no skips. Do not reuse the old thirteen-application claim or splice its footage into the new checks. Focus on `_format_action_invocation` while retaining the full diff, including other changed functions and existing helpers.
+`demo/run_mixed.py --prepare-only` runs the same pinned checkout preparation and baseline suites as the full rehearsal, but leaves both files unmodified. It saves command logs and `prepared.json`. The output directory must be new. Use the full command in `MIXED_EXAMPLE.md`, add `--prepare-only`, and choose `/tmp/shear-demo-ready` for the local operator workspace.
 
-Prefer showing Astra initiating the actual CLI/check commands in the agent UI, with readable source views for the diff. A terminal recording alone proves execution but does not visibly establish the actor. Do not fabricate agent activity or imply Shear calls Astra. The source language currently supported is Python; cross-language support is a direction, not a completed feature.
+Before capture, match the binary and input hashes to the checked evidence. Do not reuse an already-modified workspace and call it the original. A fresh full rehearsal succeeded at `/private/tmp/shear-mixed-checked`:
 
-## Story
+- Eight applications: six Python, two JavaScript.
+- Python: 1,894 tests, no skips, before and after.
+- JavaScript: 263 default assertions plus 247 additional parse/format assertions; unchanged 11/4 Windows suite skips.
+- Same named outcomes; only selected tracked files changed; original tracked inputs preserved; second check unchanged.
 
-Astra and other agents **invoke** Shear; Shear runs deterministically offline. Show useful structural simplification, not a model-proposal pipeline or dashboard. Keep one real file on screen and name its project/revision. The source improvement is the centerpiece.
+## Story, approximately 58 seconds
 
 | Time | Content |
 |---|---|
-| 0–8 s | Real before-code; explain the specific unnecessary structure |
-| 8–18 s | Actual Shear command, optionally invoked by Astra |
-| 18–38 s | Actual diff and the clearer control flow |
-| 38–50 s | Named passing checks and a preserved edge case |
-| 50–58 s | Unchanged second run; concise evidence-backed Astra development credit |
+| 0–6 s | “Two real projects. One structural cleanup step.” Name Python/CPython and JavaScript/path-browserify. |
+| 6–15 s | Actual preview, then apply with `shear cpython/Lib/argparse.py path-browserify/index.js`; show both file names and the shared command. |
+| 15–32 s | Readable Python before/after: optional-action formatting loses unnecessary alternatives. Clearly label a focused excerpt; existing helper remains unchanged. |
+| 32–43 s | Readable JavaScript before/after: `relative()`'s final fallback is no longer nested under `else`. Disclose the second `basename()` cleanup in the full patch. |
+| 43–52 s | Separately named project checks for the actual applied candidate. Baselines were completed in preparation; show actual candidate summaries, including the POSIX-only limitation. |
+| 52–58 s | Actual shared `--check` returns unchanged. Closing claim: “Deterministic. No model inside Shear.” Credit Astra development separately from the recording operator. |
 
-Use measured results, not invented timings or complexity numbers. Label replay/cut/accelerated waits. Do not splice a rewrite from one run into another run's checks.
+The source improvement is the centerpiece. Preserve full changed functions/helpers and patches in evidence; do not pretend short excerpts show all eight edits. Reading pauses and cuts between operations are fine; label replay/accelerated waits and make no unmeasured speed claim. Never splice one candidate into another run's checks or fabricate agent activity.
 
-## Early smoke test
+## Operator instructions
 
-Before committing recording time, test a ten-second capture of a harmless command. Check available VHS, ttyd, FFmpeg, ffprobe, and screen-recording capabilities. Use VHS only if it works quickly; otherwise use the existing screen recorder. Never bypass OS permissions. Stream metadata does not establish readable playback.
+See [CODEX_DEMO_RUNBOOK.md](CODEX_DEMO_RUNBOOK.md). A desktop-capable Codex session may operate the clean terminal/editor and existing recorder after access is coordinated. If those tools are unavailable, report that limitation rather than inventing a computer-use capability or installing a new recording stack. Actual CLI execution matters more than simulated typing.
 
-Current initial environment observation: FFmpeg and ffprobe available; VHS and ttyd absent. Actual capture status belongs in `BUILD_LOG.md`, not assumed here.
+## Capture and delivery gates
 
-## Capture and edit
-
-1. Prepare a disposable checkout of the selected revision. Save Shear revision, source identity, commands, rule explanations, diff, and full check logs.
-2. Frame a readable code region, usually unified diff or before/after switching rather than tiny side-by-side text. Hide unrelated tabs, notifications, and private data.
-3. Record actual execution using repeatable CLI commands. No injected patch or printed success substitute.
-4. Retain raw footage locally. Cut to 55–59 seconds with FFmpeg. Human narration is welcome; captions are an acceptable fallback. Target roughly 100–120 spoken words.
-5. Inspect MP4 streams/duration with ffprobe and watch full playback at normal size, with audio when present. Check the final frame and caption/narration alignment.
-
-Keep raw files under ignored `demo/raw/` and exports under ignored `demo/output/`. Commit small capture/edit scripts and sanitized evidence only. CLI tools own repeatable execution and encoding; desktop/browser tools can handle framing and playback QA when available. Ask for permissions or narration only when needed.
-
-## Deliverables and time
-
-Deliver a playable MP4 under one minute, captions/narration, reproducible production commands, input/run provenance, and an honest QA record. A capture script alone is not a finished video.
-
-There is no feature freeze. Earlier Pacific targets were recording complete 4:30 PM and submission ready 5:00 PM; event deadline 5:30 PM. Thorough review and testing take precedence over starting a recording prematurely. Confirm actual time before reallocating work. Follow `VIDEO_PROMPT.md` after a result qualifies. External upload needs an authorized destination; verify published links signed out.
-
-For a three-minute finalist demo, show the same functionality and keep a clearly labeled event-day recording as fallback. Do not claim unsubmitted capabilities.
+- Use an isolated, readable terminal/editor view; hide private tabs, notifications, and unrelated work. Do not bypass OS permissions.
+- Existing FFmpeg/ffprobe and macOS screen capture passed a ten-second smoke test. VHS/ttyd are absent; no need to install them.
+- Retain raw footage in ignored `demo/raw/`; export to ignored `demo/output/`. Commit only small scripts and sanitized evidence.
+- Export a playable 55–59-second MP4. Captions may replace narration. Verify streams/duration and watch the complete export at normal size; metadata alone is not playback QA.
+- No video exists yet. A prepared workspace or runbook is not a finished video.
+- Keep the 4:30 PM recording / 5:00 PM preparation targets and 5:30 PM Pacific deadline visible. These are scheduling checkpoints, not a feature freeze. External upload requires an authorized destination.

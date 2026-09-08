@@ -47,7 +47,7 @@ This is an early prototype, not a general refactoring engine. It preserves ordin
 
 Writes preserve permissions and check for stale bytes before replacement. Stop concurrent writers; the comparison and replacement are not a filesystem transaction. A filesystem failure can leave an already-written portion of a multi-file batch. Use a version-controlled working tree.
 
-A [checked CPython argparse example](docs/SELECTED_EXAMPLE.md) now demonstrates 6 simplifications with all 1,894 upstream module tests passing before and after. This is not a full CPython test run or a claim that every hunk is universally preferable. The goal is a coherent cleanup pass for humans and agents, not exclusive rules; overlap with existing autofixers is expected. Agent time savings have not been measured.
+A [checked two-project demonstration](docs/MIXED_EXAMPLE.md) produces 6 Python and 2 JavaScript simplifications in one invocation. Before/after checks pass: 1,894 Python tests and 263 + 247 JavaScript assertions, with unchanged Windows skips. This is not a full CPython test run or a claim that every hunk is universally preferable. The goal is a coherent cleanup pass for humans and agents, not exclusive rules; overlap with existing autofixers is expected. Agent time savings have not been measured.
 
 Source is public but has no project license yet. Dependencies retain their own licenses.
 
@@ -70,7 +70,8 @@ It rewrites disposable copies of three installed standard-library modules, compa
 - [Architecture and roadmap](docs/HANDOFF.md)
 - [Rule safety contracts](docs/RULES.md)
 - [Dependency and Ruff integration strategy](docs/DEPENDENCIES.md)
-- [Selected example and reproduction](docs/SELECTED_EXAMPLE.md)
+- [Mixed-language example and reproduction](docs/MIXED_EXAMPLE.md)
+- [Python example details](docs/SELECTED_EXAMPLE.md)
 - [Candidate evidence](docs/CANDIDATES.md)
 - [Real-example selection policy](docs/EXAMPLE_SELECTION.md)
 - [Video workflow](docs/DEMO_VIDEO.md)

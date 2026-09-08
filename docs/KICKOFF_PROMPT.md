@@ -4,7 +4,7 @@ Build Shear as a deterministic, offline structural formatter in Rust with tree-s
 
 Implement formatter-style paths, default safe rewrites, check/diff/explain modes, surgical edits, language-specific safety rules, and fixed-point convergence. Preserve comments, behavior, and unrelated code. Use native formatting separately rather than implementing presentation rules. Source-language choice is independent of Rust implementation; begin with thoroughly tested rules in one language, then validate shared mechanics with a second backend.
 
-Prioritize a coherent Python control-flow cleanup pass today, not exclusive rule novelty or rapid language count. Ruff is an external reference/comparison/formatter tool, not a runtime dependency; see `DEPENDENCIES.md`. Keep the current dependencies and add semantic infrastructure only for a concrete benefit. Source is public but has no project license; do not choose one without the user.
+Current delivery is the checked Python/JavaScript pass in one invocation, not exclusive rule novelty or further language count. Read `MIXED_EXAMPLE.md` and finish the recording preparation/runbook before new feature work. Ruff is an external reference/comparison/formatter tool, not a runtime dependency; see `DEPENDENCIES.md`. Keep the current dependencies and add semantic infrastructure only for a concrete benefit. Source is public but has no project license; do not choose one without the user.
 
 The user has a separate session investigating demo targets. Do not duplicate it. Qualify a real one-file example only after an actual useful deterministic transformation and unchanged project checks. Synthetic fixtures exercise safety and idempotence; do not present them as real-code discovery or novelty evidence.
 

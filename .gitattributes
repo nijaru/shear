@@ -1,2 +1,2 @@
 # Saved unified patches retain their required blank-context line markers.
-demo/evidence/cpython/*.patch -whitespace
+demo/evidence/**/*.patch -whitespace

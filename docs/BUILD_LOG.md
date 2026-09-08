@@ -2,6 +2,20 @@
 
 This records actual local results, separately from the roadmap. Times are Pacific. CPython argparse is now selected with upstream module tests passing; the final video is not complete. Earlier entries below retain their original evidence limits.
 
+## Two-language implementation and preparation, from 14:39
+
+- User approved an actual Python/JavaScript workflow rather than claiming novel Python rules. Plan commit `ded3760`; implementation `202dc47`; CI `31aea7a`.
+- Queried `cargo search tree-sitter-javascript --limit 1`, then used `cargo add tree-sitter-javascript@0.25.0`. Node is 26.8.1. Candidate research identified path-browserify's real `relative()` and `basename()` alternatives; the parent read the complete source and retained both licenses.
+- Cloned `https://github.com/browserify/path-browserify.git` at `872fec31a8bac7b9b43be0e54ef3037e0202c5fb`. Initial `npm install --ignore-scripts --no-audit --no-fund` and `npm test` passed 263 assertions. Its omitted parse/format module separately passed 247. Windows skips are 11 and four, respectively. A demonstration-owned lock now pins the existing dev dependency graph for fresh `npm ci`; no upstream manifest was changed.
+- Implemented scope/ASI-aware JavaScript redundant-else, shared enum dispatch, mixed preflight tests, `.js/.mjs/.cjs` recognition, `node_modules` discovery exclusion, and relative display paths. No runtime model or JavaScript interpreter was added to Shear.
+- Independent review caught a disposal-scope bug involving `using`; parent reproduced the changed event order before fixing it. New sync/async resource regressions pass. Follow-up independent review found no additional P0–P2 issues.
+- `cargo test` passed all 43 tests; `cargo fmt --check`, all-target/all-feature Clippy with warnings denied, and release build passed. Linux CI independently passed in about two minutes, asynchronously. CI is not a dependency of the recording workflow.
+- `demo/run_mixed.py` completed two fresh rehearsals. Final evidence at `/private/tmp/shear-mixed-checked`: one invocation, eight applications, both complete source hashes verified, unchanged named outcomes in all three suites, target-only tracked changes, original tracked inputs preserved, idempotence. The existing Python patch differs from the new Git `diff HEAD` artifact only in Git's mnemonic source-prefix metadata; candidate bytes are identical.
+- Fixed-seed actual path API comparison: 66,492 observations matched across 128 paths plus invalid arguments. This does not establish arbitrary JavaScript equivalence.
+- Harness Ruff initially reported dictionary-style/iteration lint findings; corrected, then checks passed. Workflow validated with actionlint v1.7.12 before its successful remote run.
+- `--prepare-only` was executed successfully at `/private/tmp/shear-demo-ready`: all baseline suites passed and both tracked input trees/source hashes remain original. No rewrite was applied there; `prepared.json` records the exact binary and inputs.
+- The user prefers Codex potentially operating the desktop and explicitly requested preparation first. No desktop takeover or final recording has occurred. The synthetic delivery-policy preparation is retired in favor of the qualified real inputs.
+
 ## Product correction, 12:14–12:29
 
 The user confirmed deterministic formatter behavior, Rust + tree-sitter, cross-language scope, and no runtime Astra integration. The uncommitted Go proposal prototype was set aside. `AGENTS.md` and every existing planning/video document were reconciled with that contract. Independent Go target research arrived in commit `36436ef`; its observations were preserved and its obsolete model-trial recommendation marked historical.

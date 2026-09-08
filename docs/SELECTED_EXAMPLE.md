@@ -1,4 +1,6 @@
-# Current checked example: CPython argparse
+# Checked Python example: CPython argparse
+
+This records the standalone Python profile. The same Python candidate is now part of the checked two-language workflow; see `MIXED_EXAMPLE.md` for its current binary identity, JavaScript input, and reproduction. The binary hash below belongs to the recorded earlier profile, not the new two-language build.
 
 Updated after the correctness and output-quality fixes in Shear `8cf6242` on September 8, 2026. The earlier 13-application result remains in Git history (`8d055d3`) and the initial review; **the current result has six applications**. Recording is paused and no feature freeze is in force.
 

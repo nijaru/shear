@@ -1,4 +1,8 @@
-# CPython candidate evidence
+# Candidate evidence
+
+**Current qualified pair:** CPython `argparse.py` plus path-browserify `index.js`, checked in one invocation. See `MIXED_EXAMPLE.md` for the current eight-application result, source identities, full reading-path review, and all three unchanged test suites. JavaScript research found useful redundant alternatives in `relative()` and `basename()`; it did not justify forcing conjunction merges.
+
+## Historical CPython discovery
 
 **Historical discovery record.** The original counts below predate the fixes in `8cf6242`; `SELECTED_EXAMPLE.md` is authoritative for the current six-application argparse result. Other candidates must be revalidated before recording.
 

@@ -15,6 +15,7 @@ The early repository handoff mistakenly recast this as Go plus runtime model pro
 
 - Tree-sitter Rust API: https://docs.rs/tree-sitter/latest/tree_sitter/
 - Python grammar: https://github.com/tree-sitter/tree-sitter-python
+- JavaScript grammar: https://github.com/tree-sitter/tree-sitter-javascript
 - usage-rs CLI: https://usage.jdx.dev/rust/
 - Python control-flow semantics: https://docs.python.org/3/reference/compound_stmts.html
 - Python expression/Boolean semantics: https://docs.python.org/3/reference/expressions.html
@@ -38,4 +39,4 @@ Public event reference: https://cerebralvalley.ai/e/openai-gpt-6-astra-sf . This
 
 ## Evidence not yet established
 
-The checked CPython example is documented independently in `SELECTED_EXAMPLE.md`, with upstream notices in `demo/evidence/cpython/`. This establishes the recorded module-test result, not cross-language rewrite parity, speed superiority, exhaustive equivalence, a final video, or submission. Preserve upstream attribution and licenses in published excerpts; do not claim a Shear license absent an explicit choice.
+The checked CPython example is documented independently in `SELECTED_EXAMPLE.md`; the actual Python/JavaScript invocation is documented in `MIXED_EXAMPLE.md`. Upstream notices are retained in `demo/evidence/cpython/` and `demo/evidence/path-browserify/`. The JavaScript source is pinned to https://github.com/browserify/path-browserify/commit/872fec31a8bac7b9b43be0e54ef3037e0202c5fb and identifies its Node v8.11.1/Babel origin. These checks establish the recorded results, not equal rule coverage across languages, speed superiority, exhaustive equivalence, a final video, or submission. Preserve upstream attribution and licenses in published excerpts; do not claim a Shear license absent an explicit choice.

@@ -2,6 +2,14 @@
 
 September 8, 2026. Reviewed implementation `8d055d3` (engine unchanged since `f573755`). This review supersedes any implication that a passing argparse demonstration establishes general readiness. **No feature freeze is in force. Recording remains paused at the user's request.** No formatter implementation was changed during the initial review. The follow-up fixes are now in `6629139` and `8cf6242`. The original findings below remain as provenance; the final section records their resolution, the additional audit findings, and the new six-application result.
 
+## Two-language follow-up, implementation `202dc47`
+
+JavaScript now has a separately guarded redundant-alternative rule. An independent review found a real `using_declaration` defect: lifting the block changed disposal order from `body,dispose,tail` to `body,tail,dispose`. The parent reproduced it, added recursive `using` exclusion, and added synchronous/`await using` disposal-order and binding-scope regressions. The grammar's declaration kinds were inspected; lexical/class/function/generator/using declarations are excluded, while `var` retains its function/global scope. A second independent review confirmed the fix and found no additional P0–P2 issues in the backend, dispatch, or mixed rehearsal harness.
+
+Current verification: 43 repository tests, formatting, Clippy, and release build pass on macOS; Linux CI run [34284873742](https://github.com/nijaru/shear/actions/runs/34284873742) also passed. The fresh mixed rehearsal at `/private/tmp/shear-mixed-checked` passed 1,894 Python tests with no skips, 263 default JavaScript assertions with 11 unchanged Windows suite skips, and 247 additional assertions with four unchanged Windows suite skips. Only the two selected tracked files changed; original source hashes remained intact; the second shared check returned zero. Full evidence and reading-path assessment: `MIXED_EXAMPLE.md`.
+
+An additional fixed-seed path API comparison matched 66,492 observations across 128 path strings and invalid input cases, comparing actual original/candidate modules (values and error names/messages, not stacks). Reproducer: `demo/compare_path.cjs`; original diagnostic result: `/private/tmp/shear-path-differential.json`. These are finite checks, not exhaustive equivalence or a performance claim. The preservation audit concerns tracked inputs and selected hashes, not every untracked artifact. No final video or playback QA has been completed.
+
 ## Findings
 
 ### P1 — Guards can produce uncompilable Python
