@@ -22,13 +22,13 @@ fn check_diff_write_and_idempotence() {
     assert_eq!(fs::read_to_string(&path).unwrap(), SOURCE);
     let diff = run(&["--diff", "--explain", "sample.py"], dir.path());
     assert!(diff.status.success());
-    assert!(String::from_utf8_lossy(&diff.stdout).contains("+if (a) and (b):"));
+    assert!(String::from_utf8_lossy(&diff.stdout).contains("+if a and b:"));
     assert!(String::from_utf8_lossy(&diff.stderr).contains("merge-nested-if"));
     assert_eq!(fs::read_to_string(&path).unwrap(), SOURCE);
     assert!(run(&["sample.py"], dir.path()).status.success());
     assert_eq!(
         fs::read_to_string(&path).unwrap(),
-        "if (a) and (b):\n    run()\n"
+        "if a and b:\n    run()\n"
     );
     assert!(run(&["--check", "sample.py"], dir.path()).status.success());
     assert!(run(&["sample.py"], dir.path()).stderr.is_empty());
@@ -99,6 +99,19 @@ fn rejects_symlinked_ancestors_before_any_batch_write() {
             SOURCE
         );
     }
+}
+
+#[test]
+fn rewrite_budget_failure_preserves_all_files() {
+    let dir = tempfile::tempdir().unwrap();
+    let many = "if a:\n    if b:\n        pass\n".repeat(1025);
+    fs::write(dir.path().join("a.py"), SOURCE).unwrap();
+    fs::write(dir.path().join("b.py"), &many).unwrap();
+    let output = run(&["."], dir.path());
+    assert_eq!(output.status.code(), Some(2));
+    assert!(String::from_utf8_lossy(&output.stderr).contains("rewrite limit"));
+    assert_eq!(fs::read_to_string(dir.path().join("a.py")).unwrap(), SOURCE);
+    assert_eq!(fs::read_to_string(dir.path().join("b.py")).unwrap(), many);
 }
 
 #[test]

@@ -16,7 +16,7 @@ Shear does not preserve source-location introspection, debugger line numbers, tr
 
 Trigger: an `if` has a plain `else`, and the final direct statement of its consequence is `return`, `raise`, `break`, or `continue`.
 
-Action: remove the `else` header and dedent its suite into the containing block. Preserve the original condition and the terminating branch. Elif chains are not handled. Leading and trailing suite comments are retained; text outside the parsed region is never silently consumed.
+Action: remove the `else` header and dedent its suite into the containing block. Preserve the original condition and the terminating branch. Elif chains are not handled. Leading and trailing suite comments are retained; text outside the parsed region is never silently consumed. If blank padding already precedes the removed header, leading blank padding within the moved suite is dropped rather than duplicating it.
 
 Reason: the taken consequence cannot reach the lifted suite. Python has no branch-local variable scope. Moving the suite one block outward does not cross a loop, function, exception handler, or context-manager boundary. Exit-looking calls are not treated as guaranteed termination.
 
@@ -26,7 +26,7 @@ Check: syntax, idempotence, nested contexts, early returns, raises, loop break/c
 
 Trigger: an `if` suite contains exactly one nested `if`, and neither conditional has an alternative. Both conditions occupy one physical line; the inner suite occupies later lines.
 
-Action: replace with `if (outer) and (inner):` and dedent the inner suite one level. Parentheses preserve expression grouping; native presentation normalization is left to the user's formatter.
+Action: join the conditions with `and` and dedent the inner suite one level. Preserve parentheses where precedence requires them (`or`, conditional expressions, and unknown operand shapes); known high-precedence operands and existing `and` chains do not gain redundant wrappers. Skip a merge when its header plus indentation would exceed 88 UTF-8 bytes. This conservative applicability budget avoids creating long lines without reformatting unrelated source.
 
 Reason: Python's short-circuit condition evaluates and tests the outer expression first, and evaluates/tests the inner expression only when the outer succeeds. No declarations move across a scope boundary. This reasoning is specific to condition context and must not be generalized to replacing arbitrary Boolean-valued expressions.
 

@@ -172,3 +172,32 @@ fn write_checked(path: &Path, original: &str, replacement: &str) -> Result<()> {
     temporary.persist(path).context("replace source file")?;
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn stale_input_is_not_overwritten() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("source.py");
+        fs::write(&path, "newer source\n").unwrap();
+        let error = write_checked(&path, "old source\n", "replacement\n").unwrap_err();
+        assert!(error.to_string().contains("stale source"));
+        assert_eq!(fs::read_to_string(path).unwrap(), "newer source\n");
+        assert_eq!(fs::read_dir(dir.path()).unwrap().count(), 1);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn replacement_rejects_a_target_that_became_a_symlink() {
+        let dir = tempfile::tempdir().unwrap();
+        let target = dir.path().join("target.py");
+        let link = dir.path().join("source.py");
+        fs::write(&target, "original\n").unwrap();
+        std::os::unix::fs::symlink(&target, &link).unwrap();
+        assert!(write_checked(&link, "original\n", "replacement\n").is_err());
+        assert!(fs::symlink_metadata(link).unwrap().file_type().is_symlink());
+        assert_eq!(fs::read_to_string(target).unwrap(), "original\n");
+    }
+}

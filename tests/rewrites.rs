@@ -28,7 +28,7 @@ fn removes_else_after_return() {
 #[test]
 fn merges_nested_conditions_and_converges() {
     let input = "if a:\n    if b:\n        if c:\n            run()\n";
-    assert_eq!(transformed(input), "if ((a) and (b)) and (c):\n    run()\n");
+    assert_eq!(transformed(input), "if a and b and c:\n    run()\n");
 }
 
 #[test]
@@ -50,7 +50,7 @@ fn guard_then_flattens_nested_flow() {
     );
     assert_eq!(
         transformed(source),
-        "def f(a, b, c):\n    if not (a):\n        return\n    if (b) and (c):\n        work()\n"
+        "def f(a, b, c):\n    if not (a):\n        return\n    if b and c:\n        work()\n"
     );
 }
 
@@ -61,7 +61,7 @@ fn combines_rules() {
     assert_eq!(result.rewrites.len(), 2);
     assert_eq!(
         transformed(input),
-        "def f(a, b):\n    if a:\n        return 1\n    if (b) and (a or b):\n        return 2\n    return 3\n"
+        "def f(a, b):\n    if a:\n        return 1\n    if b and (a or b):\n        return 2\n    return 3\n"
     );
 }
 
@@ -126,6 +126,49 @@ fn guard_preserves_local_order_and_finalizers() {
 }
 
 #[test]
+fn removing_else_does_not_duplicate_blank_padding() {
+    let source = "def f(x):\n    if x:\n        return 1\n\n    else:\n\n        return 2\n";
+    assert_eq!(
+        transformed(source),
+        "def f(x):\n    if x:\n        return 1\n\n    return 2\n"
+    );
+}
+
+#[test]
+fn keeps_long_conditions_nested() {
+    let source = "if configuration.should_validate_the_current_request:\n    if request.has_all_required_credentials_and_permissions:\n        accept()\n";
+    assert_eq!(transformed(source), source);
+    let source = "if a:\n    if b:\n        if condition_with_a_name_that_would_make_the_combined_header_unnecessarily_long:\n            accept()\n";
+    assert_eq!(
+        transformed(source),
+        "if a and b:\n    if condition_with_a_name_that_would_make_the_combined_header_unnecessarily_long:\n        accept()\n"
+    );
+}
+
+#[test]
+fn merged_conditions_preserve_precedence() {
+    for (condition, expected) in [
+        ("a or b", "(a or b)"),
+        ("a and b", "a and b"),
+        ("a if b else c", "(a if b else c)"),
+        ("a < b < c", "a < b < c"),
+        ("not a", "not a"),
+        ("(a or b)", "(a or b)"),
+        ("lambda: False", "(lambda: False)"),
+    ] {
+        let input = format!("if {condition}:\n    if d:\n        pass\n");
+        assert_eq!(
+            transformed(&input),
+            format!("if {expected} and d:\n    pass\n")
+        );
+        let program = format!(
+            "for a in [False, True]:\n for b in [False, True]:\n  for c in [False, True]:\n   for d in [False, True]:\n    if {condition}:\n        if d:\n            print(a, b, c, d)\n"
+        );
+        assert_eq!(execute(&program), execute(&transformed(&program)));
+    }
+}
+
+#[test]
 fn malformed_input_fails() {
     assert!(simplify_python("def f(:\n").is_err());
 }
@@ -142,7 +185,7 @@ fn preserves_comments_inside_merged_body() {
     let source = "if a:\n    if b:\n        # action\n        work() # trailing\n        # tail\n";
     assert_eq!(
         transformed(source),
-        "if (a) and (b):\n    # action\n    work() # trailing\n    # tail\n"
+        "if a and b:\n    # action\n    work() # trailing\n    # tail\n"
     );
 }
 

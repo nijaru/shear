@@ -126,11 +126,26 @@ fn redundant_else(node: Node<'_>, source: &str) -> Option<Edit> {
     if !tail.trim().is_empty() {
         return None;
     }
-    let replacement = dedent_suite(alternative, body, source, indent(node, source)?)?;
+    let mut replacement = dedent_suite(alternative, body, source, indent(node, source)?)?;
+    let start = line_start(source, alternative.start_byte());
+    // Removing a header should not concatenate its surrounding blank padding.
+    // Only trim within the moved suite, leaving unrelated preceding bytes intact.
+    if source[..start]
+        .lines()
+        .next_back()
+        .is_some_and(|line| line.trim().is_empty())
+    {
+        let padding: usize = replacement
+            .split_inclusive('\n')
+            .take_while(|line| line.trim().is_empty())
+            .map(str::len)
+            .sum();
+        replacement.drain(..padding);
+    }
     Some(Edit {
         rule: "redundant-else",
         line: alternative.start_position().row + 1,
-        range: line_start(source, alternative.start_byte())..alternative.end_byte(),
+        range: start..alternative.end_byte(),
         replacement,
     })
 }
@@ -218,6 +233,29 @@ fn guard_clause(node: Node<'_>, source: &str) -> Option<Edit> {
     })
 }
 
+// Parentheses are only omitted for known operand shapes whose precedence is
+// at least `and`. In particular, preserve grouping for `or` and conditionals.
+fn and_operand(node: Node<'_>, source: &str) -> String {
+    let unwrapped = matches!(
+        node.kind(),
+        "identifier"
+            | "attribute"
+            | "call"
+            | "subscript"
+            | "comparison_operator"
+            | "not_operator"
+            | "parenthesized_expression"
+    ) || (node.kind() == "boolean_operator"
+        && node
+            .child_by_field_name("operator")
+            .is_some_and(|op| text(op, source) == "and"));
+    if unwrapped {
+        text(node, source).to_owned()
+    } else {
+        format!("({})", text(node, source))
+    }
+}
+
 fn merge_nested(node: Node<'_>, source: &str) -> Option<Edit> {
     if node.child_by_field_name("alternative").is_some() {
         return None;
@@ -250,14 +288,19 @@ fn merge_nested(node: Node<'_>, source: &str) -> Option<Edit> {
     {
         return None;
     }
+    let header = format!(
+        "if {} and {}:",
+        and_operand(outer_condition, source),
+        and_operand(inner_condition, source)
+    );
+    // Avoid exchanging vertical nesting for an unreadable horizontal condition.
+    // This is an applicability budget, not whole-file presentation formatting.
+    if indent(node, source)? + header.len() > 88 {
+        return None;
+    }
     let dedented = dedent_suite(inner, body, source, indent(inner, source)?)?;
     // Python short-circuit `and` tests each operand in the same order as nested ifs.
-    let replacement = format!(
-        "if ({}) and ({}):\n{}",
-        text(outer_condition, source),
-        text(inner_condition, source),
-        dedented
-    );
+    let replacement = format!("{header}\n{dedented}");
     Some(Edit {
         rule: "merge-nested-if",
         line: node.start_position().row + 1,
