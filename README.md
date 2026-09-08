@@ -40,7 +40,7 @@ This is an early prototype, not a general refactoring engine. It preserves ordin
 
 Writes preserve permissions and check for stale bytes before replacement. Stop concurrent writers; the comparison and replacement are not a filesystem transaction. A filesystem failure can leave an already-written portion of a multi-file batch. Use a version-controlled working tree.
 
-No real-project showcase has qualified yet. The goal is a coherent cleanup pass for humans and agents, not exclusive rules; overlap with existing autofixers is expected. No universal readability or measured agent-time-saving claim is made.
+A [checked CPython argparse example](docs/SELECTED_EXAMPLE.md) now demonstrates 13 simplifications with all 1,894 upstream module tests passing before and after. This is not a full CPython test run or a claim that every hunk is universally preferable. The goal is a coherent cleanup pass for humans and agents, not exclusive rules; overlap with existing autofixers is expected. Agent time savings have not been measured.
 
 Source is public but has no project license yet. Dependencies retain their own licenses.
 
@@ -63,7 +63,9 @@ It rewrites disposable copies of three installed standard-library modules, compa
 - [Architecture and roadmap](docs/HANDOFF.md)
 - [Rule safety contracts](docs/RULES.md)
 - [Dependency and Ruff integration strategy](docs/DEPENDENCIES.md)
-- [Real-example selection](docs/EXAMPLE_SELECTION.md)
+- [Selected example and reproduction](docs/SELECTED_EXAMPLE.md)
+- [Candidate evidence](docs/CANDIDATES.md)
+- [Real-example selection policy](docs/EXAMPLE_SELECTION.md)
 - [Video workflow](docs/DEMO_VIDEO.md)
 - [Build evidence and limitations](docs/BUILD_LOG.md)
 - [Sources and provenance](docs/SOURCES.md)

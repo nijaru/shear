@@ -1,5 +1,11 @@
 # One-minute demo workflow
 
+## Current checked input
+
+Use CPython v3.14.7 `Lib/argparse.py`; see `SELECTED_EXAMPLE.md`. `demo/run_cpython.py` has been rehearsed and produces real baseline/rewrite/candidate/idempotence evidence in a new checkout. Current result: 13 rule applications; 1,894 upstream module tests pass before and after, no skips. Focus on `_format_action_invocation` while retaining the full diff, including other changed functions and existing helpers.
+
+Prefer showing Astra initiating the actual CLI/check commands in the agent UI, with readable source views for the diff. A terminal recording alone proves execution but does not visibly establish the actor. Do not fabricate agent activity or imply Shear calls Astra. The source language currently supported is Python; cross-language support is a direction, not a completed feature.
+
 ## Story
 
 Astra and other agents **invoke** Shear; Shear runs deterministically offline. Show useful structural simplification, not a model-proposal pipeline or dashboard. Keep one real file on screen and name its project/revision. The source improvement is the centerpiece.

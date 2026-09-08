@@ -38,4 +38,4 @@ Public event reference: https://cerebralvalley.ai/e/openai-gpt-6-astra-sf . This
 
 ## Evidence not yet established
 
-No real-project example, cross-language rewrite parity, speed benchmark, final video, or submission has qualified merely because the prototype builds. Record those independently when actually verified. Preserve upstream attribution and licenses in published excerpts; do not claim a repository-wide license absent an explicit choice.
+The checked CPython example is documented independently in `SELECTED_EXAMPLE.md`, with upstream notices in `demo/evidence/cpython/`. This establishes the recorded module-test result, not cross-language rewrite parity, speed superiority, exhaustive equivalence, a final video, or submission. Preserve upstream attribution and licenses in published excerpts; do not claim a Shear license absent an explicit choice.

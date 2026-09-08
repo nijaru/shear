@@ -1,6 +1,6 @@
 # Build evidence — September 8, 2026
 
-This records actual local results, separately from the roadmap. Times are Pacific. No real-project showcase or final video has qualified.
+This records actual local results, separately from the roadmap. Times are Pacific. CPython argparse is now selected with upstream module tests passing; the final video is not complete. Earlier entries below retain their original evidence limits.
 
 ## Product correction, 12:14–12:29
 
@@ -117,10 +117,25 @@ Artifacts include source copies, actual patches, rule explanations, before/after
 
 The harness initially triggered Ruff's broad-exception, loop-binding, and explicit-subprocess-check diagnostics. Loop arguments are now bound/passed directly, `check=False` is explicit because exit status is inspected, and the exception observer has a narrow explained suppression because exception type/message is deliberately compared. `ruff check --isolated scripts/stdlib_smoke.py` and `ruff format --isolated --check scripts/stdlib_smoke.py` pass.
 
+## Upstream qualification and rehearsal, 1:09 PM onward
+
+Verified the user's other session had a stale remote view: `git ls-remote origin refs/heads/main` returned `f573755ea9e1cc1e98b8f8009a4afc76f11eb694`, not `36436ef`.
+
+Cloned CPython tag v3.14.7; its dereferenced commit is `823f0323ee6ec1402088b73bce1a38473cac36dc`. The three installed stdlib source hashes matched that revision exactly. The clone reported the expected annotated-tag/detached-HEAD notices. `_testcapi` import failed on the installed interpreter, but this did not prevent the selected module tests from running.
+
+Original combined baseline (`test.test_argparse`, `test.test_configparser`, `test.test_urlparse`): exit 0, 2,328 tests in 1.438 seconds with ten skips. Then created isolated worktrees, editing one source file per worktree:
+
+- **argparse:** baseline 1,894 tests/1.180s; candidate 1,894 tests/1.186s; both exit 0 with no skips. Complete verbose outcomes identical except measured duration. 13 applications across three rule types; 52 lines added/65 removed. Only `Lib/argparse.py` changed; test-file hash unchanged; original checkout clean; second Shear run unchanged.
+- **urllib.parse:** baseline 77 tests/0.074s; candidate 77 tests/0.073s; both exit 0 with the same five non-ASCII-bytes subtest skips. A direct full-log comparison also exposed process-specific object addresses, so no byte-identical-log claim is made. Three applications, four lines added/seven removed. Target-only changes, identical test bytes, and idempotence verified.
+
+Read all changed argparse function contexts (610-line full-function diff) and the relevant help-test machinery. Selected the help-formatting path for its concrete removal of redundant nesting, preserving the existing local helper and comments. Some other merged conditions are long; that readability trade-off is disclosed rather than hidden. This is not a claim that stdlib was wrong/slow or that all changes are objectively superior.
+
+Added and successfully ran `demo/run_cpython.py` against a fresh clone at `/tmp/shear-cpython-demo-rehearsal`. The script requires the recorded interpreter/revision/hash, uses real bounded commands, checks import origin, baseline/candidate verbose outcomes, protected files, idempotence and original preservation, and saves raw logs plus summary. No patch is injected. Its rehearsal again passed 1,894 tests in both phases. Ruff lint/format checks pass for the script.
+
+Retained the exact upstream LICENSE, author/change notices, and both patches under `demo/evidence/cpython/`. `SELECTED_EXAMPLE.md` records acquisition, exact commands/hashes, readable region, full diff, test limitations, and fallback. No full CPython suite, platform matrix, upstream acceptance, or final recording is claimed.
+
 ## Next work
 
-1. Validate the combined control-flow pass on a useful real-code example; existing autofixer overlap is acceptable and should be documented.
-2. Improve conservative applicability where real code exposes friction, preserving comment and safety contracts.
-3. Requalify incoming targets under the deterministic product contract; existing Go research is not runnable with the Python-only prototype.
-4. Add a second backend after the first-language pass provides useful evidence, rather than chasing grammar count.
-5. Run unchanged real-project checks and prepare the one-minute video only after useful source evidence exists.
+1. Produce the one-minute recording using the qualified argparse run and an honest Astra-invocation view; inspect full playback and attribution.
+2. Keep feature additions bounded. The useful first-language result is now checked; a second backend is optional, not a reason to jeopardize recording time.
+3. Preserve current evidence identity; any change to rules or presentation source requires a newly checked run.

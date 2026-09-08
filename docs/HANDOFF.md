@@ -70,7 +70,7 @@ A second backend follows the useful first-language pass. Scope changes, overload
 
 ### 4. Real-project validation
 
-The user's separate discovery session owns target research. Supply it the corrected deterministic/cross-language contract. Use exact source snapshots and unchanged project checks. Keep one file's substantive, readable change for the demonstration, with full source context and attribution. See `EXAMPLE_SELECTION.md`.
+The user's separate session supplied provisional targets. The user then authorized evaluating Python's standard library: CPython v3.14.7 `Lib/argparse.py` is now selected after 13 real rewrites and 1,894 unchanged upstream tests with no skips. `Lib/urllib/parse.py` is a checked smaller fallback. See `SELECTED_EXAMPLE.md` and `CANDIDATES.md` for exact identities, source review, limitations, and reproduction. Do not describe mature stdlib code as already optimal or claim a performance fix. Keep one file's readable change central, with full source context and attribution.
 
 ### 5. Agent workflow and video
 
