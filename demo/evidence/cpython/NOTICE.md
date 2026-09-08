@@ -11,7 +11,7 @@ The accompanying `LICENSE` is copied unchanged from that revision and contains t
 
 ## Changes represented here
 
-- `argparse.patch`: Shear removes redundant alternatives, normalizes exiting alternatives into guards, and merges nested conditions in `Lib/argparse.py`. Existing interfaces, helper bodies, comments, and tests are preserved. No new helper is introduced. Native whole-file reformatting was not applied.
-- `urlparse.patch`: fallback demonstration of the same deterministic rules in `Lib/urllib/parse.py`, including port validation and defragmented-URL return paths.
+- `argparse.patch`: Shear `8cf6242` removes four redundant alternatives and performs two short nested-condition merges in `Lib/argparse.py`. The previous guard rewrites and overlong merges are no longer included. Existing interfaces, helper bodies, comments, and tests are preserved. No new helper is introduced. Native whole-file reformatting was not applied.
+- `urlparse.patch`: historical fallback demonstration (before the follow-up safety fixes) of the deterministic rules in `Lib/urllib/parse.py`, including port validation and defragmented-URL return paths.
 
 These are demonstration patches, not contributions accepted by CPython or evidence of PSF endorsement. The claim is a checked alternative structural representation, not that Python was incorrect, slow, or optimally formatted before the change.

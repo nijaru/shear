@@ -1,6 +1,6 @@
 # Correctness and code-quality review
 
-September 8, 2026. Reviewed implementation `8d055d3` (engine unchanged since `f573755`). This review supersedes any implication that a passing argparse demonstration establishes general readiness. **No feature freeze is in force. Recording remains paused at the user's request.** No formatter implementation was changed during the initial review. Follow-up implementation now skips declaration-containing guard regions and rejects explicit symlinked path components. Both findings first failed new regressions, then passed after the fixes; the original findings below remain as provenance. The deeper audit additionally reproduced form-feed indentation corruption and CPython local-slot/finalizer-order changes. Form-feed regions are now skipped, and guards cannot move names across names; new compiler/behavior regressions failed before these fixes and pass afterward. This deliberately reduces guard applicability rather than redefining observable effects out of the contract. All 23 repository tests and the fresh upstream argparse rehearsal pass. Output-quality work continues.
+September 8, 2026. Reviewed implementation `8d055d3` (engine unchanged since `f573755`). This review supersedes any implication that a passing argparse demonstration establishes general readiness. **No feature freeze is in force. Recording remains paused at the user's request.** No formatter implementation was changed during the initial review. The follow-up fixes are now in `6629139` and `8cf6242`. The original findings below remain as provenance; the final section records their resolution, the additional audit findings, and the new six-application result.
 
 ## Findings
 
@@ -34,7 +34,7 @@ Direction: define and enforce the exact path boundary, including ancestor behavi
 
 ### P2 — The full demo output is not consistently more readable
 
-`src/python.rs:231–236`, visible in `demo/evidence/cpython/argparse.patch`: nested merges accumulate parentheses and place the entire conjunction on one physical line. Four changed condition headers reach **114, 126, 107, and 130 characters**, in `_add_action`, `_parse_known_args2`, `_parse_optional`, and `_check_value` respectively. The three-level defaults check becomes a double-parenthesized horizontal condition. This reduces indentation, not the underlying number of decisions, and can make scanning harder.
+`src/python.rs:231–236`, visible in `demo/evidence/cpython/argparse.patch` at review commit `08d01da`: nested merges accumulate parentheses and place the entire conjunction on one physical line. Four changed condition headers reach **114, 126, 107, and 130 characters**, in `_add_action`, `_parse_known_args2`, `_parse_optional`, and `_check_value` respectively. The three-level defaults check becomes a double-parenthesized horizontal condition. This reduces indentation, not the underlying number of decisions, and can make scanning harder.
 
 Direction: evaluate conservative local multiline presentation or applicability that avoids making the reading path worse. Do not solve this by formatting unrelated upstream source. An external Ruff 0.16.6 experiment made the conditions readable and Shear remained idempotent afterward, but formatting the original whole file alone changed **627 added / 554 removed lines**. That is not an acceptable hidden addition to the focused demo patch. No formatted replacement has been selected or represented as the checked demo.
 
@@ -85,6 +85,30 @@ PYTHONPATH=/tmp/shear-review-corpus:/tmp/shear-cpython-3.14.7/Lib \
 
 An independent fresh-context reviewer inspected semantics and file writes; the parent separately assessed the full actual patch, ran broader checks, and reproduced the substantive reviewer findings. This is not an external maintainer review.
 
-## Remaining work
+## Follow-up fixes and deeper audit — completed at `8cf6242`
 
-Correct the declaration-order defect and protect it with regression tests; resolve the path-policy mismatch; improve and re-review mixed-quality generated output; then rerun the actual demonstration against the new binary and retain new hashes. Feature work remains open to improvements justified by this evidence. No final recording, playback QA, or submission is complete. Concurrent writers, exhaustive semantic equivalence, additional source-language support, and the full CPython/platform test matrix remain outside this review's verified result.
+The declaration and symlink failures were first captured by failing repository regressions, then fixed. A second independent adversarial audit found two additional concrete failures, also reproduced as failing tests before correction:
+
+- A literal form feed within suite indentation could compile before rewriting but raise `IndentationError` afterward. All form-feed-containing regions are now skipped. The observed indentation semantics are CPython-specific.
+- Swapping suites changed CPython local-variable ordering and observable finalizer order, even with no `global`/`nonlocal`. A branch reading a subsequently bound local also reproduces the issue; assignment-only screening is insufficient. Guards now require at least one identifier-free suite, preserving name-encounter order rather than dismissing the resulting effects as unsupported. Declaration-containing regions are separately skipped, conservatively including nested scopes.
+
+The path policy now rejects explicit symlink components before canonicalization, including `link/..`. Absolute macOS `/tmp` aliases are rejected by direct CLI use; the owned-checkout scripts explicitly resolve their paths. No concurrent-mutation transaction is claimed.
+
+Merged headers use precedence-aware grouping and an 88-byte applicability budget, avoiding stacked wrappers and new overlong conditions. Removing an else no longer duplicates its surrounding blank padding; trimming stays within the moved suite. The new argparse patch was read in full: it has **six applications, 28 added/35 removed lines**, retaining useful help-path flattening and short merges while omitting the questionable changes. Current patch and hashes are in `SELECTED_EXAMPLE.md`.
+
+### Final verification
+
+- **30 repository tests pass:** 21 rewrite tests, seven CLI tests, two file-write unit tests. New coverage includes all reproduced bugs, precedence, long-header rejection, blank padding, async context exits, synchronous/asynchronous generator cleanup and injected exceptions, stale source, a replaced symlink target, and rewrite-budget failure without any batch writes. The actual 1,025-opportunity limit test takes roughly 20–30 seconds in debug builds; it is not a throughput benchmark or a fast-path claim.
+- `cargo fmt --check`, Clippy with all targets/features and warnings denied, release build, and Python harness Ruff checks pass.
+- Actual demo rerun at `/tmp/shear-cpython-final-audit`: **1,894 upstream tests before/after, no skips**, identical named outcomes, current candidate hash verified, target-only change, original preserved, unchanged second run.
+- Final binary processed **721 non-test CPython modules: 210 changed, 511 unchanged**. All compiled and were idempotent. Recursively compared compiled code-object local/cell/free-variable names and their order: no differences. This is compiler metadata verification, not execution coverage of all modules.
+- **240 generated programs, 23,040 finite before/after scenario comparisons** matched; 227 programs changed and 13 were conservatively skipped. All were idempotent. Sources/output: `/tmp/shear-final-differential.py` and `/tmp/shear-final-differential/`.
+- The three upstream module suites with the revised corpus first on `PYTHONPATH` passed **2,328 tests with the same ten skips**. Corpus harness and evidence: `/tmp/shear-final-corpus.py`, `/tmp/shear-final-corpus/summary.json`, `/tmp/shear-final-corpus-tests.log`.
+- The existing installed-stdlib observation harness passed against the final binary at `/tmp/shear-final-smoke`.
+- A fresh integration reviewer found no additional evidence-backed P0–P2 issue in the fixes. Its 2,700 Python comparisons modeled operand rendering rather than executing a new Shear build; actual binary, compiler corpus, and end-to-end tests above were parent-run. The reviewer checked the guard gate, precedence, local padding, and path checks.
+
+The additional audit's original reproducers remain in `/tmp/shear-audit2-evidence/results.json`; permanent regression coverage is in the repository tests. Final binary SHA-256: `bb96816337dc41bc201e74f38e1e9794dbc1fc8a6d3f9c03808ff654da766180`.
+
+### Residual limits
+
+This resolves the confirmed findings, not every possible Python semantic issue. Guard applicability is intentionally narrower without fuller scope analysis; header length is a conservative proxy, not a universal readability measure. Parsing does not replace the language compiler. Convergence has a pass bound, not a wall-clock guarantee. Concurrent filesystem mutation, crash/power-loss durability, exhaustive equivalence, additional source languages, and the full CPython/platform matrix remain unverified. The actual on-screen Astra interaction, final recording, playback QA, and submission are unfinished. Recording stays paused; feature work is not frozen.

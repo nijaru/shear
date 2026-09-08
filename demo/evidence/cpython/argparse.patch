@@ -1,5 +1,5 @@
 diff --git i/Lib/argparse.py w/Lib/argparse.py
-index a106a71..6e43e2c 100644
+index a106a71..a931178 100644
 --- i/Lib/argparse.py
 +++ w/Lib/argparse.py
 @@ -471,9 +471,8 @@ def _get_actions_usage_parts(self, actions, groups):
@@ -9,25 +9,16 @@ index a106a71..6e43e2c 100644
 -                    if in_group:
 -                        if part[0] == '[' and part[-1] == ']':
 -                            part = part[1:-1]
-+                    if (in_group) and (part[0] == '[' and part[-1] == ']'):
++                    if in_group and part[0] == '[' and part[-1] == ']':
 +                        part = part[1:-1]
                      part = t.summary_action + part + t.reset
  
                  # produce the first way to invoke the option in brackets
-@@ -590,32 +589,30 @@ def _format_action_invocation(self, action):
+@@ -590,32 +589,29 @@ def _format_action_invocation(self, action):
                  + t.reset
              )
  
 -        else:
- 
--            def color_option_strings(strings):
--                parts = []
--                for s in strings:
--                    if self._is_long_option(s):
--                        parts.append(f"{t.long_option}{s}{t.reset}")
--                    else:
--                        parts.append(f"{t.short_option}{s}{t.reset}")
--                return parts
 +        def color_option_strings(strings):
 +            parts = []
 +            for s in strings:
@@ -37,17 +28,26 @@ index a106a71..6e43e2c 100644
 +                    parts.append(f"{t.short_option}{s}{t.reset}")
 +            return parts
  
--            # if the Optional doesn't take a value, format is:
--            #    -s, --long
--            if action.nargs == 0:
--                option_strings = color_option_strings(action.option_strings)
--                return ', '.join(option_strings)
+-            def color_option_strings(strings):
+-                parts = []
+-                for s in strings:
+-                    if self._is_long_option(s):
+-                        parts.append(f"{t.long_option}{s}{t.reset}")
+-                    else:
+-                        parts.append(f"{t.short_option}{s}{t.reset}")
+-                return parts
 +        # if the Optional doesn't take a value, format is:
 +        #    -s, --long
 +        if action.nargs == 0:
 +            option_strings = color_option_strings(action.option_strings)
 +            return ', '.join(option_strings)
  
+-            # if the Optional doesn't take a value, format is:
+-            #    -s, --long
+-            if action.nargs == 0:
+-                option_strings = color_option_strings(action.option_strings)
+-                return ', '.join(option_strings)
+-
 -            # if the Optional takes a value, format is:
 -            #    -s, --long ARGS
 -            else:
@@ -68,7 +68,7 @@ index a106a71..6e43e2c 100644
  
      def _metavar_formatter(self, action, default_metavar):
          if action.metavar is not None:
-@@ -628,8 +625,7 @@ def _metavar_formatter(self, action, default_metavar):
+@@ -628,8 +624,7 @@ def _metavar_formatter(self, action, default_metavar):
          def format(tuple_size):
              if isinstance(result, tuple):
                  return result
@@ -78,32 +78,7 @@ index a106a71..6e43e2c 100644
          return format
  
      def _format_args(self, action, default_metavar):
-@@ -1586,9 +1582,8 @@ def _add_action(self, action):
- 
-         # set the flag if any option strings look like negative numbers
-         for option_string in action.option_strings:
--            if self._negative_number_matcher.match(option_string):
--                if not self._has_negative_number_optionals:
--                    self._has_negative_number_optionals.append(True)
-+            if (self._negative_number_matcher.match(option_string)) and (not self._has_negative_number_optionals):
-+                self._has_negative_number_optionals.append(True)
- 
-         # return the created action
-         return action
-@@ -2008,10 +2003,9 @@ def parse_args(self, args=None, namespace=None):
-         args, argv = self.parse_known_args(args, namespace)
-         if argv:
-             msg = _('unrecognized arguments: %s') % ' '.join(argv)
--            if self.exit_on_error:
--                self.error(msg)
--            else:
-+            if not (self.exit_on_error):
-                 raise ArgumentError(None, msg)
-+            self.error(msg)
-         return args
- 
-     def parse_known_args(self, args=None, namespace=None):
-@@ -2031,10 +2025,8 @@ def _parse_known_args2(self, args, namespace, intermixed):
+@@ -2031,10 +2026,9 @@ def _parse_known_args2(self, args, namespace, intermixed):
  
          # add any action defaults that aren't present
          for action in self._actions:
@@ -111,44 +86,13 @@ index a106a71..6e43e2c 100644
 -                if not hasattr(namespace, action.dest):
 -                    if action.default is not SUPPRESS:
 -                        setattr(namespace, action.dest, action.default)
-+            if ((action.dest is not SUPPRESS) and (not hasattr(namespace, action.dest))) and (action.default is not SUPPRESS):
-+                setattr(namespace, action.dest, action.default)
++            if action.dest is not SUPPRESS and not hasattr(namespace, action.dest):
++                if action.default is not SUPPRESS:
++                    setattr(namespace, action.dest, action.default)
  
          # add any parser defaults that aren't present
          for dest in self._defaults:
-@@ -2170,21 +2162,20 @@ def consume_optional(start_index):
-                         char = option_string[0]
-                         option_string = char + explicit_arg[0]
-                         optionals_map = self._option_string_actions
--                        if option_string in optionals_map:
--                            action = optionals_map[option_string]
--                            explicit_arg = explicit_arg[1:]
--                            if not explicit_arg:
--                                sep = explicit_arg = None
--                            elif explicit_arg[0] == '=':
--                                sep = '='
--                                explicit_arg = explicit_arg[1:]
--                            else:
--                                sep = ''
--                        else:
-+                        if not (option_string in optionals_map):
-                             extras.append(char + explicit_arg)
-                             extras_pattern.append('O')
-                             stop = start_index + 1
-                             break
-+                        action = optionals_map[option_string]
-+                        explicit_arg = explicit_arg[1:]
-+                        if not explicit_arg:
-+                            sep = explicit_arg = None
-+                        elif explicit_arg[0] == '=':
-+                            sep = '='
-+                            explicit_arg = explicit_arg[1:]
-+                        else:
-+                            sep = ''
-                     # if the action expect exactly one argument, we've
-                     # successfully matched the option; exit the loop
-                     elif arg_count == 1:
-@@ -2283,8 +2274,7 @@ def consume_positionals(start_index):
+@@ -2283,8 +2277,7 @@ def consume_positionals(start_index):
                  if positionals_end_index > start_index:
                      start_index = positionals_end_index
                      continue
@@ -158,50 +102,3 @@ index a106a71..6e43e2c 100644
  
              # if we consumed all the positionals we could and we're not
              # at the index of an option string, there were extra arguments
-@@ -2465,9 +2455,8 @@ def _parse_optional(self, arg_string):
-         # if it was not found as an option, but it looks like a negative
-         # number, it was meant to be positional
-         # unless there are negative-number-like options
--        if self._negative_number_matcher.match(arg_string):
--            if not self._has_negative_number_optionals:
--                return None
-+        if (self._negative_number_matcher.match(arg_string)) and (not self._has_negative_number_optionals):
-+            return None
- 
-         # if it contains a space, it was meant to be a positional
-         if ' ' in arg_string:
-@@ -2571,10 +2560,9 @@ def parse_intermixed_args(self, args=None, namespace=None):
-         args, argv = self.parse_known_intermixed_args(args, namespace)
-         if argv:
-             msg = _('unrecognized arguments: %s') % ' '.join(argv)
--            if self.exit_on_error:
--                self.error(msg)
--            else:
-+            if not (self.exit_on_error):
-                 raise ArgumentError(None, msg)
-+            self.error(msg)
-         return args
- 
-     def parse_known_intermixed_args(self, args=None, namespace=None):
-@@ -2684,14 +2672,13 @@ def _check_value(self, action, value):
-                     'choices': ', '.join(repr(str(choice)) for choice in action.choices)}
-             msg = _('invalid choice: %(value)r (choose from %(choices)s)')
- 
--            if self.suggest_on_error and isinstance(value, str):
--                if all(isinstance(choice, str) for choice in action.choices):
--                    import difflib
--                    suggestions = difflib.get_close_matches(value, action.choices, 1)
--                    if suggestions:
--                        args['closest'] = suggestions[0]
--                        msg = _('invalid choice: %(value)r, maybe you meant %(closest)r? '
--                                '(choose from %(choices)s)')
-+            if (self.suggest_on_error and isinstance(value, str)) and (all(isinstance(choice, str) for choice in action.choices)):
-+                import difflib
-+                suggestions = difflib.get_close_matches(value, action.choices, 1)
-+                if suggestions:
-+                    args['closest'] = suggestions[0]
-+                    msg = _('invalid choice: %(value)r, maybe you meant %(closest)r? '
-+                            '(choose from %(choices)s)')
- 
-             raise ArgumentError(action, msg % args)
- 

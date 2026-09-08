@@ -341,6 +341,79 @@ print(events, [compare(x) for x in [-1, 0, float('nan')]], loop())
 }
 
 #[test]
+fn guards_preserve_async_contexts_and_generator_cleanup() {
+    let source = r#"import asyncio
+events = []
+class Scope:
+    async def __aenter__(self):
+        events.append('enter')
+    async def __aexit__(self, kind, value, traceback):
+        events.append('exit')
+
+async def choose(flag):
+    async with Scope():
+        if flag:
+            events.append('work')
+            await asyncio.sleep(0)
+        else:
+            return 0
+    return 1
+
+def generate(flag):
+    try:
+        if flag:
+            yield 1
+            yield 2
+        else:
+            return 0
+    finally:
+        events.append('generator-finally')
+
+async def async_generate(flag):
+    try:
+        if flag:
+            yield 1
+        else:
+            return
+    finally:
+        events.append('async-generator-finally')
+
+async def main():
+    for flag in [False, True]:
+        events.append(await choose(flag))
+        events.append(list(generate(flag)))
+        async for value in async_generate(flag):
+            events.append(value)
+    generator = generate(True)
+    events.append(next(generator))
+    try:
+        generator.throw(ValueError('injected'))
+    except ValueError:
+        events.append('caught')
+    generator = generate(True)
+    events.append(next(generator))
+    generator.close()
+    asynchronous = async_generate(True)
+    events.append(await anext(asynchronous))
+    await asynchronous.aclose()
+
+asyncio.run(main())
+print(events)
+"#;
+    let result = simplify_python(source).unwrap();
+    assert_eq!(
+        result
+            .rewrites
+            .iter()
+            .filter(|r| r.rule == "guard-clause")
+            .count(),
+        3
+    );
+    assert_eq!(execute(source), execute(&result.source));
+    assert_eq!(transformed(source), result.source);
+}
+
+#[test]
 fn preserves_unrelated_bytes_unicode_and_blank_lines() {
     let source = "# untouched\ndef café(x):\n    if x:\n        return 'é'\n    else:\n\n        return '☃'\n\n# footer\n";
     let result = transformed(source);

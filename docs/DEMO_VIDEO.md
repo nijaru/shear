@@ -2,9 +2,9 @@
 
 ## Current checked input
 
-Recording is paused. The follow-up `REVIEW.md` identifies a correctness defect and mixed-quality output to address before recording; the selected input is not frozen.
+Recording is paused. The fixes and integration audit in `REVIEW.md` have produced a newly checked, smaller patch; the selected input is not frozen.
 
-Use CPython v3.14.7 `Lib/argparse.py`; see `SELECTED_EXAMPLE.md`. `demo/run_cpython.py` has been rehearsed and produces real baseline/rewrite/candidate/idempotence evidence in a new checkout. Current result: 13 rule applications; 1,894 upstream module tests pass before and after, no skips. Focus on `_format_action_invocation` while retaining the full diff, including other changed functions and existing helpers.
+Use CPython v3.14.7 `Lib/argparse.py`; see `SELECTED_EXAMPLE.md`. `demo/run_cpython.py` has been rehearsed and produces real baseline/rewrite/candidate/idempotence evidence in a new checkout. Current result at `8cf6242`: six rule applications (four redundant-else removals, two short condition merges); 1,894 upstream module tests pass before and after, no skips. Do not reuse the old thirteen-application claim or splice its footage into the new checks. Focus on `_format_action_invocation` while retaining the full diff, including other changed functions and existing helpers.
 
 Prefer showing Astra initiating the actual CLI/check commands in the agent UI, with readable source views for the diff. A terminal recording alone proves execution but does not visibly establish the actor. Do not fabricate agent activity or imply Shear calls Astra. The source language currently supported is Python; cross-language support is a direction, not a completed feature.
 

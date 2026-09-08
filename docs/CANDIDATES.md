@@ -1,5 +1,7 @@
 # CPython candidate evidence
 
+**Historical discovery record.** The original counts below predate the fixes in `8cf6242`; `SELECTED_EXAMPLE.md` is authoritative for the current six-application argparse result. Other candidates must be revalidated before recording.
+
 September 8, 2026. These candidates were evaluated using the implemented Python backend after the user specifically proposed the standard library. They supplement the separate session's historical Rust/Go/TypeScript suggestions in `TARGET_RESEARCH.md`; unsupported languages were not claimed to run.
 
 All three installed files matched CPython **v3.14.7**, commit **`823f0323ee6ec1402088b73bce1a38473cac36dc`**, byte-for-byte. A shallow upstream clone supplied surrounding code and original tests. Source: https://github.com/python/cpython/tree/823f0323ee6ec1402088b73bce1a38473cac36dc . Upstream notices and derivative-change requirements are retained under `demo/evidence/cpython/`.

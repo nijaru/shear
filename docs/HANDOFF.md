@@ -40,7 +40,7 @@ Keep one small Rust package. Share edit/report mechanics, not a speculative univ
 
 ## Milestones and acceptance criteria
 
-The follow-up review found a guard-reordering correctness defect and mixed readability in the full example. See `REVIEW.md`; the passing module tests below do not establish general readiness. Recording is paused, and feature work remains open.
+The follow-up review led to declaration-order, local-slot/finalizer-order, form-feed, and symlink-path fixes, plus more conservative and readable merging. See `REVIEW.md` for verified fixes and residual limits; passing tests still do not establish arbitrary equivalence. Recording is paused, and feature work remains open.
 
 Current checks and known limitations are recorded in `BUILD_LOG.md`; exact rule applicability is in `RULES.md`. Initial Ruff comparison confirms the first two rules overlap existing autofixes.
 
@@ -72,7 +72,7 @@ A second backend follows the useful first-language pass. Scope changes, overload
 
 ### 4. Real-project validation
 
-The user's separate session supplied provisional targets. The user then authorized evaluating Python's standard library: CPython v3.14.7 `Lib/argparse.py` is now selected after 13 real rewrites and 1,894 unchanged upstream tests with no skips. `Lib/urllib/parse.py` is a checked smaller fallback. See `SELECTED_EXAMPLE.md` and `CANDIDATES.md` for exact identities, source review, limitations, and reproduction. Do not describe mature stdlib code as already optimal or claim a performance fix. Keep one file's readable change central, with full source context and attribution.
+The user's separate session supplied provisional targets. The user then authorized evaluating Python's standard library: CPython v3.14.7 `Lib/argparse.py` currently has six real rewrites and 1,894 unchanged upstream tests with no skips. `Lib/urllib/parse.py` remains historical fallback evidence requiring revalidation before use. See `SELECTED_EXAMPLE.md` and `CANDIDATES.md` for exact identities, source review, limitations, and reproduction. Do not describe mature stdlib code as already optimal or claim a performance fix. Keep one file's readable change central, with full source context and attribution.
 
 ### 5. Agent workflow and video
 
