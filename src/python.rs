@@ -26,7 +26,8 @@ fn safe_region(root: Node<'_>, source: &str) -> bool {
     }
     let mut pending = vec![root];
     while let Some(node) = pending.pop() {
-        if matches!(node.kind(), "comment" | "named_expression")
+        if node.kind() == "named_expression"
+            || (node.kind() == "comment" && is_directive(text(node, source)))
             || (node.kind() == "string" && node.start_position().row != node.end_position().row)
         {
             return false;
@@ -35,6 +36,19 @@ fn safe_region(root: Node<'_>, source: &str) -> bool {
         pending.extend(node.named_children(&mut cursor));
     }
     true
+}
+
+fn is_directive(comment: &str) -> bool {
+    let content = comment
+        .trim_start_matches('#')
+        .trim_start()
+        .to_ascii_lowercase();
+    [
+        "type:", "fmt:", "ruff:", "noqa", "nosec", "pylint:", "pyright:", "mypy:", "isort:",
+        "pragma:", "doctest:",
+    ]
+    .iter()
+    .any(|prefix| content.starts_with(prefix))
 }
 
 fn text<'a>(node: Node<'_>, source: &'a str) -> &'a str {
@@ -48,13 +62,38 @@ fn indent(node: Node<'_>, source: &str) -> Option<usize> {
     prefix.bytes().all(|b| b == b' ').then_some(prefix.len())
 }
 
-fn dedent_block(block: Node<'_>, source: &str, target: usize) -> Option<String> {
+// Tree-sitter attaches leading suite comments to the header, not the block.
+// Slice from the header's newline so those comments travel with their suite.
+fn suite_start(header: Node<'_>, block: Node<'_>, source: &str) -> Option<usize> {
+    if block.start_position().row <= header.start_position().row {
+        return None;
+    }
+    let mut cursor = header.walk();
+    if header.named_children(&mut cursor).any(|child| {
+        child.kind() == "comment" && child.start_position().row == header.start_position().row
+    }) {
+        return None;
+    }
+    let start = header.start_byte() + source[header.start_byte()..].find('\n')? + 1;
+    let width = indent(block, source)?;
+    // Under-indented comments have ambiguous suite ownership: leave them alone.
+    for line in source[start..block.end_byte()].lines() {
+        if line.trim_start().starts_with('#')
+            && line.len() - line.trim_start_matches(' ').len() < width
+        {
+            return None;
+        }
+    }
+    Some(start)
+}
+
+fn dedent_suite(header: Node<'_>, block: Node<'_>, source: &str, target: usize) -> Option<String> {
     let width = indent(block, source)?;
     let remove = width.checked_sub(target)?;
     if remove == 0 {
         return None;
     }
-    let start = line_start(source, block.start_byte());
+    let start = suite_start(header, block, source)?;
     let mut output = String::new();
     for line in source[start..block.end_byte()].split_inclusive('\n') {
         if line.trim().is_empty() {
@@ -87,7 +126,7 @@ fn redundant_else(node: Node<'_>, source: &str) -> Option<Edit> {
     if !tail.trim().is_empty() {
         return None;
     }
-    let replacement = dedent_block(body, source, indent(node, source)?)?;
+    let replacement = dedent_suite(alternative, body, source, indent(node, source)?)?;
     Some(Edit {
         rule: "redundant-else",
         line: alternative.start_position().row + 1,
@@ -101,6 +140,7 @@ fn directly_terminates(block: Node<'_>) -> bool {
     let mut cursor = block.walk();
     block
         .named_children(&mut cursor)
+        .filter(|child| child.kind() != "comment")
         .last()
         .is_some_and(|last| {
             matches!(
@@ -121,6 +161,12 @@ fn guard_clause(node: Node<'_>, source: &str) -> Option<Edit> {
         return None;
     }
     let condition = node.child_by_field_name("condition")?;
+    if !source[consequence.end_byte()..alternative.start_byte()]
+        .trim()
+        .is_empty()
+    {
+        return None;
+    }
     if condition.start_position().row != condition.end_position().row
         || consequence.start_position().row == node.start_position().row
         || exit_body.start_position().row == alternative.start_position().row
@@ -132,8 +178,8 @@ fn guard_clause(node: Node<'_>, source: &str) -> Option<Edit> {
     {
         return None;
     }
-    let lifted = dedent_block(consequence, source, indent(node, source)?)?;
-    let exit_suite = &source[line_start(source, exit_body.start_byte())..exit_body.end_byte()];
+    let lifted = dedent_suite(node, consequence, source, indent(node, source)?)?;
+    let exit_suite = &source[suite_start(alternative, exit_body, source)?..exit_body.end_byte()];
     // `not` performs one truth test; do not invert comparison operators (NaN,
     // overloaded comparisons, and rich truthiness make that a different operation).
     Some(Edit {
@@ -173,7 +219,15 @@ fn merge_nested(node: Node<'_>, source: &str) -> Option<Edit> {
     if body.start_position().row == inner.start_position().row {
         return None;
     }
-    let dedented = dedent_block(body, source, indent(inner, source)?)?;
+    // A comment explaining the inner condition cannot be silently reassigned
+    // to the combined condition or body.
+    if !source[suite_start(node, outer_body, source)?..inner.start_byte()]
+        .trim()
+        .is_empty()
+    {
+        return None;
+    }
+    let dedented = dedent_suite(inner, body, source, indent(inner, source)?)?;
     // Python short-circuit `and` tests each operand in the same order as nested ifs.
     let replacement = format!(
         "if ({}) and ({}):\n{}",

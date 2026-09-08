@@ -56,7 +56,7 @@ Initial rules:
 2. Merge nested `if` statements without alternatives using short-circuit `and`.
 3. Normalize a directly exiting `else` into a guard and lift the normal path.
 
-Use conservative syntax subsets. Skip comments in edited regions, multiline string literals, tabs, one-line suites, and named-expression conditions until dedicated handling is implemented. Preserve expression evaluation and control destinations. Do not equate arbitrary truthy values with Boolean values when simplifying returns.
+Use conservative syntax subsets. Preserve ordinary suite comments and enforce exact comment-text preservation after each rewrite; skip directives, ambiguous comment placement, multiline string literals, tabs, one-line suites, and named-expression conditions. Preserve expression evaluation and control destinations. Do not equate arbitrary truthy values with Boolean values when simplifying returns.
 
 Each rule needs positive/negative, nesting, comment, malformed-source, idempotence, and differential fixtures. Record limitations honestly; these rules overlap existing lint fixes and do not establish novelty.
 

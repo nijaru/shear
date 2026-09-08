@@ -90,6 +90,33 @@ Actual development checks:
 - `cargo clippy --all-targets --all-features -- -D warnings`: pass.
 - Differential Python fixtures preserve effectful truth tests, raised exceptions, NaN classification, `finally` effects, returns, break, and continue. Composition and unchanged second runs are checked.
 
+## Suite comments and real-source smoke, 12:56–1:05 PM
+
+Removed the blanket comment exclusion in favor of suite-aware source slices. Leading comments are children of tree-sitter headers rather than block nodes; a local syntax-tree probe established that ownership before implementation. Ordinary suite comments now move with their statements. Tooling directives, modified-header comments, and ambiguous under-indented/inter-suite comments remain conservative skips. The engine enforces exact comment-text multiplicity across every reparse.
+
+Three new comment fixtures first failed as expected because no rewrite was offered. After implementation, all **19 tests** pass (5 CLI, 14 rewrite), including exact comment placement and idempotence. `cargo fmt --check`, Clippy with warnings denied, and release build pass. The temporary syntax-tree probe was removed.
+
+Added `scripts/stdlib_smoke.py`, a no-dependency Python 3.11+ harness. It copies modules from the active interpreter to a new output directory, establishes original observations, runs Shear, checks compilation and matching observations, checks an unchanged second run, and rechecks original bytes. Child commands have 30-second deadlines. This is trusted local stdlib execution, not a sandbox.
+
+Actual final command:
+
+```sh
+python3 scripts/stdlib_smoke.py --shear target/release/shear \
+  --out /tmp/shear-stdlib-smoke-20260908-final
+```
+
+Interpreter: `3.14.7 (main, Aug 7 2026, 02:15:30) [Clang 22.1.3]`. Binary SHA-256: `f6c8adf7f94626733ce5fc65d2915e7897d1708db0dc8f6af74bf77b894d9e66`.
+
+| Installed input | Original SHA-256 | Rules applied | Result |
+|---|---|---:|---|
+| `configparser.py` | `de8ddb6cdaa3bb51885ff47a768a81cb32bd279dd5a5eaf5388cde48b7f264a9` | 6 | Compile, observation comparison, idempotence, original preservation passed |
+| `argparse.py` | `b9f0fa53be3d7c9c10a71a8eecc538a27c32fbe7abe337818d0d36e138bfc5c5` | 13 | Same checks passed |
+| `urllib/parse.py` | `484b633b81d024da52649c7ff775c81b338de9f60585c94e5adfe335a27d9509` | 3 | Same checks passed |
+
+Artifacts include source copies, actual patches, rule explanations, before/after JSON observations, candidate hashes, and elapsed times. The observations exercise configuration interpolation/fallback/errors, argument conversion/choices/help, and URL port errors/defragmentation. They are not held-out or exhaustive tests. The installed interpreter does not include `test/test_pathlib`; **no full CPython test suite was run**, no upstream Git revision is asserted, and no source license/publication qualification was performed. These are validation inputs, not selected showcase candidates. A read-only pathlib preview also succeeded with two rewrites.
+
+The harness initially triggered Ruff's broad-exception, loop-binding, and explicit-subprocess-check diagnostics. Loop arguments are now bound/passed directly, `check=False` is explicit because exit status is inspected, and the exception observer has a narrow explained suppression because exception type/message is deliberately compared. `ruff check --isolated scripts/stdlib_smoke.py` and `ruff format --isolated --check scripts/stdlib_smoke.py` pass.
+
 ## Next work
 
 1. Validate the combined control-flow pass on a useful real-code example; existing autofixer overlap is acceptable and should be documented.

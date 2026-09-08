@@ -35,6 +35,7 @@ pub fn simplify_python(source: &str) -> Result<Outcome> {
     parser.set_language(&tree_sitter_python::LANGUAGE.into())?;
     let mut current = source.to_owned();
     let mut rewrites = Vec::new();
+    let mut original_comments = None;
     for _ in 0..=1024 {
         let tree = parser
             .parse(&current, None)
@@ -43,6 +44,15 @@ pub fn simplify_python(source: &str) -> Result<Outcome> {
             !tree.root_node().has_error(),
             "malformed Python source; no changes written"
         );
+        let comments = comment_texts(tree.root_node(), &current);
+        if let Some(expected) = &original_comments {
+            ensure!(
+                &comments == expected,
+                "rewrite changed comment text; no changes written"
+            );
+        } else {
+            original_comments = Some(comments);
+        }
         let Some(edit) = python::next_edit(tree.root_node(), &current) else {
             return Ok(Outcome {
                 source: current,
@@ -66,4 +76,20 @@ pub fn simplify_python(source: &str) -> Result<Outcome> {
         });
     }
     bail!("rewrite limit reached")
+}
+
+// Preserve the multiset: guards can reorder suites, but never remove, duplicate,
+// or edit comment text. Rule-specific fixtures additionally enforce ownership.
+fn comment_texts(root: tree_sitter::Node<'_>, source: &str) -> Vec<String> {
+    let mut comments = Vec::new();
+    let mut pending = vec![root];
+    while let Some(node) = pending.pop() {
+        if node.kind() == "comment" {
+            comments.push(source[node.byte_range()].to_owned());
+        }
+        let mut cursor = node.walk();
+        pending.extend(node.named_children(&mut cursor));
+    }
+    comments.sort_unstable();
+    comments
 }

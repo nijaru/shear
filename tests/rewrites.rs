@@ -77,11 +77,15 @@ fn skips_uncertain_regions() {
         "if a:\n    if b: work()\n",
         "def f(a):\n    if a:\n        return 1\n    else: return 2\n",
         "def f(a):\n    if a:\n        return 1\n    elif b:\n        return 2\n    else:\n        return 3\n",
-        "def f(a):\n    if a:\n        return 1\n    else:\n        return 2 # important\n",
-        "def f(a):\n    if a:\n        # meaningful\n        work()\n    else:\n        return 0\n",
+        "def f(a):\n    if a:\n        return 1\n    else: # important\n        return 2\n",
+        "def f(a):\n    if a: # meaningful\n        work()\n    else:\n        return 0\n",
         "def f(a):\n    if a:\n        work()\n    else:\n        maybe_exit()\n",
         "def f(a):\n    if a: work()\n    else:\n        return 0\n",
-        "def f(a):\n    if a:\n        work()\n    else:\n        return 0 # keep here\n",
+        "def f(a):\n    if a:\n        work()\n    else:\n        return 0 # noqa\n",
+        "if a:\n    if b: # header comment:\n        work()\n",
+        "if a:\n    if b:\n        # fmt: off\n        work()\n",
+        "def f(a):\n    if a:\n        return 0\n    else:\n    # ambiguous ownership\n        work()\n",
+        "def f(a):\n    if a:\n        work()\n    # between suites\n    else:\n        return 0\n",
     ] {
         assert_eq!(transformed(source), source, "unexpected rewrite: {source}");
     }
@@ -90,6 +94,31 @@ fn skips_uncertain_regions() {
 #[test]
 fn malformed_input_fails() {
     assert!(simplify_python("def f(:\n").is_err());
+}
+
+#[test]
+fn preserves_suite_comments_when_lifting_else() {
+    let source = "def f(x):\n    if x:\n        # explain exit\n        return 1 # exit\n    else:\n        # explain value\n        value = 2 # value\n        # end of alternative\n    # outside\n    return value\n";
+    let expected = "def f(x):\n    if x:\n        # explain exit\n        return 1 # exit\n    # explain value\n    value = 2 # value\n    # end of alternative\n    # outside\n    return value\n";
+    assert_eq!(transformed(source), expected);
+}
+
+#[test]
+fn preserves_comments_inside_merged_body() {
+    let source = "if a:\n    if b:\n        # action\n        work() # trailing\n        # tail\n";
+    assert_eq!(
+        transformed(source),
+        "if (a) and (b):\n    # action\n    work() # trailing\n    # tail\n"
+    );
+}
+
+#[test]
+fn preserves_comment_ownership_when_making_guard() {
+    let source = "def f(a):\n    if a:\n        # normal work\n        work()\n    else:\n        # explain rejection\n        return 0 # rejection\n";
+    assert_eq!(
+        transformed(source),
+        "def f(a):\n    if not (a):\n        # explain rejection\n        return 0 # rejection\n    # normal work\n    work()\n"
+    );
 }
 
 #[test]

@@ -4,7 +4,11 @@ These are the current Python rules, not generic cross-language equivalence laws.
 
 ## Shared applicability
 
-Tree-sitter must parse the entire UTF-8 file without errors. Skip a proposed region containing comments, tabs, carriage returns, named expressions, or multiline strings. This deliberately favors skipped opportunities over changing trivia or scope-sensitive syntax. Skip one-line suites where lifting would require reconstructing layout. Source positions are byte ranges, not character indices.
+Tree-sitter must parse the entire UTF-8 file without errors. Skip a proposed region containing tabs, carriage returns, named expressions, multiline strings, or recognized tooling directives (`type:`, `fmt:`, `ruff:`, `noqa`, `nosec`, `pylint:`, `pyright:`, `mypy:`, `isort:`, `pragma:`, `doctest:`). Skip one-line suites where lifting would require reconstructing layout. Source positions are byte ranges, not character indices.
+
+Ordinary leading, inline, and trailing suite comments travel with their suite. Tree-sitter places leading comments outside the block node, so suite slices begin after the header newline. Skip comments attached to a header that must be rewritten, under-indented comments with ambiguous ownership, and comments between a pair of conditions that would be merged. Guard rewrites also skip comments between suites that cannot be assigned safely.
+
+Every reparse compares the multiset of exact comment texts with the original: dropping, duplicating, or changing a comment is an error with no file write. This enforces text preservation, not meaning; ownership is additionally checked by rule-specific fixtures.
 
 Shear does not preserve source-location introspection, debugger line numbers, traceback locations, coverage positions, or bytecode identity: moving source inherently changes those observations. Behavior preservation here concerns ordinary program values, effects, exceptions, binding, and control flow. Do not apply to code whose contract depends on source layout.
 
@@ -12,7 +16,7 @@ Shear does not preserve source-location introspection, debugger line numbers, tr
 
 Trigger: an `if` has a plain `else`, and the final direct statement of its consequence is `return`, `raise`, `break`, or `continue`.
 
-Action: remove the `else` header and dedent its suite into the containing block. Preserve the original condition and the terminating branch. Elif chains are not handled. Trailing comments on the affected final line cause a skip.
+Action: remove the `else` header and dedent its suite into the containing block. Preserve the original condition and the terminating branch. Elif chains are not handled. Leading and trailing suite comments are retained; text outside the parsed region is never silently consumed.
 
 Reason: the taken consequence cannot reach the lifted suite. Python has no branch-local variable scope. Moving the suite one block outward does not cross a loop, function, exception handler, or context-manager boundary. Exit-looking calls are not treated as guaranteed termination.
 
