@@ -2,6 +2,8 @@
 
 ## Current checked input
 
+Recording is paused. The follow-up `REVIEW.md` identifies a correctness defect and mixed-quality output to address before recording; the selected input is not frozen.
+
 Use CPython v3.14.7 `Lib/argparse.py`; see `SELECTED_EXAMPLE.md`. `demo/run_cpython.py` has been rehearsed and produces real baseline/rewrite/candidate/idempotence evidence in a new checkout. Current result: 13 rule applications; 1,894 upstream module tests pass before and after, no skips. Focus on `_format_action_invocation` while retaining the full diff, including other changed functions and existing helpers.
 
 Prefer showing Astra initiating the actual CLI/check commands in the agent UI, with readable source views for the diff. A terminal recording alone proves execution but does not visibly establish the actor. Do not fabricate agent activity or imply Shear calls Astra. The source language currently supported is Python; cross-language support is a direction, not a completed feature.
@@ -22,7 +24,7 @@ Use measured results, not invented timings or complexity numbers. Label replay/c
 
 ## Early smoke test
 
-Before feature freeze, test a ten-second capture of a harmless command. Check available VHS, ttyd, FFmpeg, ffprobe, and screen-recording capabilities. Use VHS only if it works quickly; otherwise use the existing screen recorder. Never bypass OS permissions. Stream metadata does not establish readable playback.
+Before committing recording time, test a ten-second capture of a harmless command. Check available VHS, ttyd, FFmpeg, ffprobe, and screen-recording capabilities. Use VHS only if it works quickly; otherwise use the existing screen recorder. Never bypass OS permissions. Stream metadata does not establish readable playback.
 
 Current initial environment observation: FFmpeg and ffprobe available; VHS and ttyd absent. Actual capture status belongs in `BUILD_LOG.md`, not assumed here.
 
@@ -40,6 +42,6 @@ Keep raw files under ignored `demo/raw/` and exports under ignored `demo/output/
 
 Deliver a playable MP4 under one minute, captions/narration, reproducible production commands, input/run provenance, and an honest QA record. A capture script alone is not a finished video.
 
-Pacific targets: feature freeze 3:45 PM, recording complete 4:30 PM, submission ready 5:00 PM; event deadline 5:30 PM. Confirm actual time before reallocating work. Follow `VIDEO_PROMPT.md` after a result qualifies. External upload needs an authorized destination; verify published links signed out.
+There is no feature freeze. Earlier Pacific targets were recording complete 4:30 PM and submission ready 5:00 PM; event deadline 5:30 PM. Thorough review and testing take precedence over starting a recording prematurely. Confirm actual time before reallocating work. Follow `VIDEO_PROMPT.md` after a result qualifies. External upload needs an authorized destination; verify published links signed out.
 
 For a three-minute finalist demo, show the same functionality and keep a clearly labeled event-day recording as fallback. Do not claim unsubmitted capabilities.

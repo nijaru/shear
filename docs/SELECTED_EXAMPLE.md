@@ -1,6 +1,6 @@
 # Selected example: CPython argparse
 
-Selected September 8, 2026 for demo preparation after a real deterministic rewrite and unchanged upstream tests. This is an agent readability judgment, not a CPython maintainer endorsement or proof of arbitrary equivalence.
+Selected September 8, 2026 for demo preparation after a real deterministic rewrite and unchanged upstream tests. **Selection remains provisional:** the subsequent [review](REVIEW.md) found mixed readability in the full patch and a separate engine correctness defect. The recorded test results below remain valid, but recording is paused pending improvements and revalidation. This is an agent readability judgment, not a CPython maintainer endorsement or proof of arbitrary equivalence.
 
 ## Identity and claim
 

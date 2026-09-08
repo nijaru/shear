@@ -36,6 +36,8 @@ Run your native formatter and normal compiler/linter/tests afterward. Shear does
 
 ## Current limits
 
+**Known correctness defect:** guard rewrites involving `global`/`nonlocal` declarations can produce uncompilable Python that `--check` still accepts. Do not rely on the current engine for unattended edits. The [review](docs/REVIEW.md) also records a symlink-boundary mismatch and mixed readability in the demo output; fixes are pending.
+
 This is an early prototype, not a general refactoring engine. It preserves ordinary suite comments but skips tooling directives, ambiguous comment placement, multiline strings, tabs, and named expressions. Rules reparse after each edit and converge to an unchanged second run. Inputs are limited to 2 MiB per file and 1,024 rewrites per file; pending original/result bytes are capped at 64 MiB per invocation. Parse checks are not type checking or proof of equivalence.
 
 Writes preserve permissions and check for stale bytes before replacement. Stop concurrent writers; the comparison and replacement are not a filesystem transaction. A filesystem failure can leave an already-written portion of a multi-file batch. Use a version-controlled working tree.

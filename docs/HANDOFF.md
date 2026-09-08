@@ -40,6 +40,8 @@ Keep one small Rust package. Share edit/report mechanics, not a speculative univ
 
 ## Milestones and acceptance criteria
 
+The follow-up review found a guard-reordering correctness defect and mixed readability in the full example. See `REVIEW.md`; the passing module tests below do not establish general readiness. Recording is paused, and feature work remains open.
+
 Current checks and known limitations are recorded in `BUILD_LOG.md`; exact rule applicability is in `RULES.md`. Initial Ruff comparison confirms the first two rules overlap existing autofixes.
 
 ### 1. Formatter foundation — implemented prototype
@@ -78,7 +80,7 @@ Demonstrate Astra editing code or invoking Shear, Shear's deterministic simplifi
 
 ## Time and scope
 
-At reset: 12:14 PM Pacific. Target a checked formatter slice before expanding languages. Feature freeze 3:45 PM; recording complete 4:30 PM; submission preparation by 5:00 PM; deadline 5:30 PM. Preserve failed attempts and provenance. Public repo/video publication still requires applicable authorization.
+No feature freeze is in force, per the user's correction. Thorough review and testing precede recording; improvements remain in scope. Earlier recording/submission targets were 4:30 PM/5:00 PM, with a 5:30 PM deadline; reassess scheduling against actual quality rather than locking features. Recording is currently paused by the user. Preserve failed attempts and provenance. Public repo/video publication still requires applicable authorization.
 
 ## Superseded implementation
 

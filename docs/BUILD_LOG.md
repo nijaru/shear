@@ -139,3 +139,13 @@ Retained the exact upstream LICENSE, author/change notices, and both patches und
 1. Produce the one-minute recording using the qualified argparse run and an honest Astra-invocation view; inspect full playback and attribution.
 2. Keep feature additions bounded. The useful first-language result is now checked; a second backend is optional, not a reason to jeopardize recording time.
 3. Preserve current evidence identity; any change to rules or presentation source requires a newly checked run.
+
+## Follow-up review before recording
+
+The user rejected a feature freeze and requested thorough review/testing of actual code quality. Recording remains paused. `REVIEW.md` supersedes the earlier readiness judgment: an independent reviewer found guard declaration-order corruption and an ancestor-symlink policy mismatch; the parent reproduced both. No implementation fix was applied as part of this report-mode review.
+
+Fresh release build, formatting, Clippy and 19 repository tests passed. Reran the actual demo script in `/tmp/shear-cpython-review-run`: 1,894 upstream tests before/after, no skips, identical named outcomes, same candidate hash, idempotence and original preservation. Additional generated testing covered 240 changed programs and 23,040 finite scenario comparisons. A 721-file non-test CPython corpus produced 220 changed/501 unchanged files, all compiling and idempotent; the three upstream module suites against that rewritten corpus passed 2,328 tests with the same ten skips. These passing checks did not catch the confirmed declaration-order counterexamples.
+
+Full-patch review found meaningful help-path flattening but four merged headers of 107–130 characters. A Ruff-formatting experiment preserved Shear idempotence but caused excessive unrelated whole-file churn. No replacement demo patch was selected. Exact findings and evidence paths are in `REVIEW.md`.
+
+Operational diagnostics: `tk create` was rejected (the actual command is `tk add`); the first header-length measurement hit an empty condition list from another same-named method and was rerun filtering empty lists. A no-index diff across CPython paths emitted attribute-macro warnings but returned its diff statistics. No source changes resulted from those diagnostic failures. The next implementation work should address the confirmed bugs and mixed-quality output, not record around them.
