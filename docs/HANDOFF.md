@@ -8,7 +8,7 @@ The expanded normalization pass supports Python shared branch tails, exhaustive 
 
 The current recording centerpiece is [NORMALIZATION_EXAMPLE.md](NORMALIZATION_EXAMPLE.md): a real shared continuation in CPython `locale._localize` after configured Ruff autofixes. The earlier argparse+JavaScript evidence in [MIXED_EXAMPLE.md](MIXED_EXAMPLE.md) remains tied to `202dc47`; do not apply its eight-rewrite count to the expanded binary.
 
-Delivery remains active: prepare a fresh Ruff-only locale input alongside original path-browserify JavaScript, record through the Codex desktop app with computer use, then inspect the complete exported playback. No final video or submission exists. The event deadline is 5:30 PM Pacific. External upload needs an authorized destination. No feature freeze is in force; prioritize delivery of the checked pass.
+Delivery now uses user-selected VHS automation: fresh Ruff-only locale input alongside original path-browserify JavaScript, typed real terminal commands, upstream checks and an unchanged second pass. See [TERMINAL_DEMO.md](TERMINAL_DEMO.md) and `demo/terminal.tape`. This supersedes the desktop-operator plan and rejected custom slideshow. The event deadline is 5:30 PM Pacific. External upload needs an authorized destination. No feature freeze is in force; prioritize delivery of the checked pass.
 
 ## End state
 
@@ -48,7 +48,7 @@ Keep one small Rust package. Share edit/report mechanics, not a speculative univ
 
 ## Milestones and acceptance criteria
 
-The follow-up review led to declaration-order, local-slot/finalizer-order, form-feed, and symlink-path fixes, plus more conservative and readable merging. See `REVIEW.md` for verified fixes and residual limits; passing tests still do not establish arbitrary equivalence. Recording is paused, and feature work remains open.
+The follow-up review led to declaration-order, local-slot/finalizer-order, form-feed, and symlink-path fixes, plus more conservative and readable merging. See `REVIEW.md` for verified fixes and residual limits; passing tests still do not establish arbitrary equivalence. VHS recording is authorized, and feature work remains open.
 
 Current checks and known limitations are recorded in `BUILD_LOG.md`; exact rule applicability is in `RULES.md`. Initial Ruff comparison confirms the first two rules overlap existing autofixes.
 
@@ -88,7 +88,7 @@ Demonstrate the actual two-language Shear invocation, useful changes, named pass
 
 ## Time and scope
 
-No feature freeze is in force, per the user's correction. Thorough review and testing precede recording; improvements remain in scope. Earlier recording/submission targets were 4:30 PM/5:00 PM, with a 5:30 PM deadline; reassess scheduling against actual quality rather than locking features. Recording is currently paused by the user. Preserve failed attempts and provenance. Public repo/video publication still requires applicable authorization.
+No feature freeze is in force, per the user's correction. Thorough review and testing precede recording; improvements remain in scope. Earlier recording/submission targets were 4:30 PM/5:00 PM, with a 5:30 PM deadline; reassess scheduling against actual quality rather than locking features. Recording is now authorized through VHS. Preserve failed attempts and provenance. Public repo/video publication still requires applicable authorization.
 
 ## Superseded implementation
 
