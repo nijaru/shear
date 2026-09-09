@@ -1,7 +1,4 @@
 /target/
 .env
-/demo/raw/
-/demo/output/
-/demo/smoke/
 *.profraw
 .DS_Store

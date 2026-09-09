@@ -1,32 +1,12 @@
 # Shear: structural formatter implementation map
 
-Updated September 8, 2026 after explicit user correction. This replaces the mistaken model-proposal product described in the earlier revision. Original concept supplied in `structural-formatter-handoff.md`: **the transformation engine is the product**.
+Updated September 9, 2026 after the hackathon. The demo, its evidence, and the event-driven process docs are removed from the working tree; commit `a4a02ad` preserves the finished VHS take, and Git history before it preserves the qualified evidence. This document now owns the development roadmap.
 
-## Active delivery status — September 8, 4:55 PM Pacific
+## What exists
 
-The expanded normalization pass supports Python shared branch tails, exhaustive exits, redundant `elif` flattening and broader conservative guards, plus JavaScript exhaustive exits, nested-condition merging and guards. All 64 repository tests, formatting and Clippy pass locally with Python 3.14.7 and Node v26.8.1. The default login shell selected Python 3.9 in the desktop session and failed the existing `anext` test; selecting `/opt/homebrew/bin` first restored the intended environment.
+A local, deterministic CLI that humans and coding agents run like a formatter. It rewrites mechanically unnecessary control structure toward simpler language-idiomatic forms, then hands presentation to native formatters. No runtime inference, API credentials, helper extraction, generic codemod language, or arbitrary architecture changes.
 
-The current recording centerpiece is [NORMALIZATION_EXAMPLE.md](NORMALIZATION_EXAMPLE.md): a real shared continuation in CPython `locale._localize` after configured Ruff autofixes. The earlier argparse+JavaScript evidence in [MIXED_EXAMPLE.md](MIXED_EXAMPLE.md) remains tied to `202dc47`; do not apply its eight-rewrite count to the expanded binary.
-
-Delivery now uses user-selected VHS automation: fresh Ruff-only locale input alongside original path-browserify JavaScript, typed real terminal commands, upstream checks and an unchanged second pass. See [TERMINAL_DEMO.md](TERMINAL_DEMO.md) and `demo/terminal.tape`. This supersedes the desktop-operator plan and rejected custom slideshow. The event deadline is 5:30 PM Pacific. External upload needs an authorized destination. No feature freeze is in force; prioritize delivery of the checked pass.
-
-## End state
-
-A local, deterministic CLI that humans and coding agents run like a formatter. It rewrites mechanically unnecessary structure toward simpler language-idiomatic forms, then hands presentation to native formatters. No runtime inference, API credentials, helper extraction, generic codemod language, or arbitrary architecture changes.
-
-Rust is the implementation language. Tree-sitter supplies cross-language syntax trees and byte ranges. Source-language support is independent of the host language. Scope/effects/types are not provided by tree-sitter: each rule must establish its own safety conditions, optionally using language-native semantic tooling later.
-
-## Product value and scope
-
-The goal is useful structural cleanup per human/agent invocation, not exclusive ownership of every rewrite. Overlap with Ruff, Clippy, ESLint, or other autofixers is acceptable. Do not gate progress on finding a novel rule or claim that those tools lack semantic analysis.
-
-**Today:** build on the checked Python pass to demonstrate useful Python and JavaScript cleanup in one invocation. Preserve behavior/comments and convergence with language-specific safety, not parser-only support. Keep the shared engine small; add the required grammar through Cargo. Use Ruff/ESLint externally for comparison rather than claim their overlapping fixes are missing.
-
-**Long term:** reduce recurring manual and agent cleanup across languages. Develop shared edit/convergence mechanics and language-specific syntax, binding, termination, effect, and type facts as needed. Tree-sitter is the common syntax entry point, not a restriction against richer backends. Agent time savings and fewer iterations are hypotheses to measure, not current performance claims. Naming, architecture, and intent remain human/agent responsibilities.
-
-Shear's source is public but has no project license yet. Do not choose one or call the project open source without the user's decision. Preserve all applicable dependency and copied-code notices.
-
-## Ownership and architecture
+The `202dc47` binary processed real CPython and path-browserify files with their upstream suites green (recorded in the removed `MIXED_EXAMPLE.md`, retrievable from Git history; its binary hash is pinned there, not here). Later work did not retain that exact binary; the recorded counts do not transfer to newer code. Since then the shared-branch-tail rule and expanded guard/exit analysis landed, with all 64 repository tests green. That suite needs a fresh `target/release/shear` build before use; it is not committed as a binary.
 
 ```text
 CLI paths / modes / ignores
@@ -41,55 +21,93 @@ CLI paths / modes / ignores
 - CLI owns file discovery, output, exit status, and writes.
 - Engine owns parsing, edit validity, deterministic ordering, and bounded convergence.
 - Language rule owns semantics, comment handling, and canonical direction.
-- Rule report records concrete transformations, not a universal quality score.
 - Tests own regression evidence. Passing finite tests is not a proof for arbitrary programs.
 
-Keep one small Rust package. Share edit/report mechanics, not a speculative universal AST. Learn the backend boundary by implementing a second language.
+Rust is the implementation language; source-language support is independent of it. Tree-sitter supplies syntax, not semantic equivalence. Each rule establishes its own safety conditions per language, optionally using richer language-native tooling later.
 
-## Milestones and acceptance criteria
+## Verified differentiation, September 9
 
-The follow-up review led to declaration-order, local-slot/finalizer-order, form-feed, and symlink-path fixes, plus more conservative and readable merging. See `REVIEW.md` for verified fixes and residual limits; passing tests still do not establish arbitrary equivalence. VHS recording is authorized, and feature work remains open.
+The competitive question is not "are the rules novel" — the first four overlap known autofixers — but "what can Shear do that the current tools cannot, and is that worth a separate step in someone's workflow". Measured against Ruff 0.16.6 and ESLint 10.10.0 on 2026-09-09 (workstation versions; re-verify before relying on any claim):
 
-Current checks and known limitations are recorded in `BUILD_LOG.md`; exact rule applicability is in `RULES.md`. Initial Ruff comparison confirms the first two rules overlap existing autofixes.
+| Capability | Ruff | ESLint | Shear |
+|---|---|---|---|
+| Redundant `else` after exit | Yes (`RET505`+, sometimes unsafe) | `return` only (`no-else-return`) | Yes, all exit kinds |
+| Nested `if` merge | Yes (`SIM102`, unsafe) | No | Yes |
+| Guard-clause conversion | **No fix** | **No fix** | Yes |
+| Shared branch tail | **No fix** | **No fix** | Yes |
+| Lifted-scope/exit verification | One rule at a time | One rule at a time | Whole file per edit |
+| Safe fixes without unsafe gate | Partial | Partial | Yes, by design |
+| Comment preservation during lift | Not verified | Not verified | Contract-enforced |
 
-### 1. Formatter foundation — implemented prototype
+Verified observations behind the table:
 
-Rust, tree-sitter, usage-rs CLI; paths/directories, default write, `--check`, `--diff`, `--explain`. Ignore generated/irrelevant paths where supported and never follow symlinks. Parse before and after changes. Non-mutating modes never write. Idempotence and bounded passes prevent oscillation. Writes compare current source with the read snapshot and preserve permissions; simultaneous writers remain unsupported.
+- Ruff `--fix --unsafe-fixes` reproduces Shear's redundant-else, nested-merge, and elif-lift output on simple cases; safe-fix mode alone leaves these unchanged, so users wanting these changes must opt into `--unsafe-fixes`.
+- Ruff `--select ALL --fix --unsafe-fixes` leaves the `shared-branch-tail` shape (a `locale._localize`-style duplicate continuation) completely untouched.
+- Neither Ruff with all rules nor ESLint with `no-else-return`/`no-lonely-if` converts an exiting alternative into a guard (the `case6` shape: non-exiting `if`, `raise`/`throw` in the `else`).
+- ESLint `no-else-return` does not fire on `throw` exits at all, and neither tool lifts lexical declarations with the ASI/disposal reasoning Shear performs per rewrite.
+- Known Shear weaknesses exposed by the same session: Python guard output emits `not (item.checked)` instead of idiomatic `not item.checked`; the JavaScript backend has no shared-branch-tail rule (both verified live). Un-ruled out: whether some ESLint plugin (e.g. SonarJS) adds guard conversion — unverified, do not claim absence beyond core ESLint.
 
-### 2. First transformations — implemented and fixture-tested
+The recorded `MIXED_EXAMPLE.md` overlap analysis (earlier rules vs. configured Ruff) is retrievable from Git history. Ruff never stood still either: its newer versions keep adding unsafe fixes, so each capability row carries a version footnote and needs periodic re-verification.
 
-Start with Python for the initial engine exercise: it has no branch-local variable scope, supports small readable control-flow examples, and can be behavior-tested with the local interpreter. This is an implementation decision, not a showcase selection or a permanent language priority.
+## What would make Shear meaningfully better
 
-Initial rules:
+Two levers exist: rewrites existing tools genuinely lack, and the trusted-agent-formatter experience. Ranked by expected value:
 
-1. Remove `else` after a directly terminating branch.
-2. Merge nested `if` statements without alternatives using short-circuit `and`.
-3. Normalize a directly exiting `else` into a guard and lift the normal path.
+### 1. Own the guard-clause rewrite class
 
-Use conservative syntax subsets. Preserve ordinary suite comments and enforce exact comment-text preservation after each rewrite; skip directives, ambiguous comment placement, multiline string literals, tabs, one-line suites, and named-expression conditions. Preserve expression evaluation and control destinations. Do not equate arbitrary truthy values with Boolean values when simplifying returns.
+Converting "non-exiting `if` + exiting `else`" into a guard is the highest-value verified gap. Ruff has no such fix; ESLint core has none either. It is also the class that most directly reduces the nesting agents (and humans) leave behind after edits.
 
-Each rule needs positive/negative, nesting, comment, malformed-source, idempotence, and differential fixtures. Record limitations honestly; these rules overlap existing lint fixes and do not establish novelty.
+- **a. Output quality first:** current output `if not (item.checked):` is visibly worse than hand refactoring. Idiomatic negation (`not item.checked` for simple names/calls, keep parens only where precedence genuinely requires) is table stakes before promoting this rule; without it the rewrite makes code look machine-stamped.
+- **b. Verify plugin scope:** check SonarJS and other popular ESLint plugin sets for guard-style fixes before claiming the JavaScript gap is real beyond core ESLint.
+- **c. Multi-exit variants:** `else` containing `raise` + more statements after it, guard-conversion for `while`/`for` loops (loop-else and exit conditions), and chained `elif` arms where the last arm exits.
 
-### 3. Coherent control-flow normalization — active
+### 2. Broaden shared-tail beyond identical text
 
-Compose redundant-else removal, nested-condition flattening, and guard normalization. Add redundant-path simplification only with explicit safety conditions. Prioritize useful combined output, preservation, and stable formatter behavior over isolated rule novelty. Use existing tool implementations and tests as references; record attribution for any copied/adapted material.
+`shared-branch-tail` is Shear's most distinctive idea: duplicate continuation after both branches. Ruff/ESLint have nothing like it (verified for the identical-text shape). Broadening it multiplies its hit rate on real code.
 
-Keep `tree-sitter`, language grammars, `usage-rs`, `ignore`, `similar`, `tempfile`, and `anyhow`. Do not add a generic rewrite framework. Ruff internals are published but have unstable Rust interfaces; consider a specific crate only when its Python semantic capabilities materially reduce complexity. See `DEPENDENCIES.md`.
+- **a. JavaScript port:** the rule exists only in Python. Porting it to the JS backend (which already has the scope machinery for lifted statements) extends the verified two-language pass to all rules.
+- **b. Return simplification:** when both branches' tails are `return a, b` vs `return b, a` style variants, conservative unification.
+- **c. Semicolon-tail and comment-tail tolerance:** currently skipped conservatively; each tolerated shape needs fixture evidence.
 
-The implemented JavaScript backend follows the useful Python pass; see its distinct contract in `RULES.md`. Scope changes, overloaded operators, destructors, labels, coercions, and evaluation order require language-specific reasoning. No language is supported merely because its parser loads.
+### 2-note. Convergence on combined passes
 
-### 4. Real-project validation
+Shear composes rules to a fixed point, so `redundant-else` → `merge-nested-if` → `guard-clause` chains apply automatically. Ruff's one-shot per-rule fix model cannot express this class without separate runs. Verified as designed behavior; value claim rests on the rules themselves being worth running.
 
-The user's separate session supplied provisional targets. The user then authorized evaluating Python's standard library: CPython v3.14.7 `Lib/argparse.py` currently has six real rewrites and 1,894 unchanged upstream tests with no skips. `Lib/urllib/parse.py` remains historical fallback evidence requiring revalidation before use. See `SELECTED_EXAMPLE.md` and `CANDIDATES.md` for exact identities, source review, limitations, and reproduction. Do not describe mature stdlib code as already optimal or claim a performance fix. Keep one file's readable change central, with full source context and attribution.
+### 3. TypeScript backend
 
-### 5. Agent workflow and video
+TypeScript is the highest-demand agent language with no Shear support. A TS backend doubles addressable users without requiring new rules (control-flow shapes are the same). The JS backend's scope/ASI/disposal machinery is the template; TS adds type syntax to skip.
 
-Demonstrate the actual two-language Shear invocation, useful changes, named passing checks, and an unchanged second run. Codex may operate the desktop if that capability is available; credit Astra development separately and never fabricate agent activity. No hidden patch injection or runtime model request. Use CLI capture/edit tools and actual playback QA. See `DEMO_VIDEO.md` and `VIDEO_PROMPT.md`.
+### 4. Fresh real-target pass with current code
 
-## Time and scope
+The old evidence machine (pinned-revision demo scripts, giant workspace copies) is retired. Replace it with the lightweight pattern already used at hackathon scale: fresh clone → `shear` → before/after check runs → inspect diff, without hash-pin scripts. A new pass over CPython/two JS projects with the current binary establishes what the tool does today and feeds honest numbers into any comparison claim.
 
-No feature freeze is in force, per the user's correction. Thorough review and testing precede recording; improvements remain in scope. Earlier recording/submission targets were 4:30 PM/5:00 PM, with a 5:30 PM deadline; reassess scheduling against actual quality rather than locking features. Recording is now authorized through VHS. Preserve failed attempts and provenance. Public repo/video publication still requires applicable authorization.
+### 5. The trusted-step experience (if pursuing agent usage)
 
-## Superseded implementation
+Agents already run formatters; Shear's premise is being runnable the same way — deterministic, offline, no model, bounded runtime. The verified differentiators there: whole-file reparse after every edit (Ruff's fuzzer-evident architecture applies one rule at a time), comment-multiset preservation enforced at every rewrite, and refusal-to-write on any failed check. These are not roadmap items; they are existing guarantees to keep and state clearly.
 
-The initial uncommitted Go model-proposal prototype was moved outside the repository to `/tmp/shear-superseded-go-20260908`. It is not the product and must not be presented as completed Shear functionality. Earlier planning and this correction remain distinguishable in Git history.
+### Explicit non-goals
+
+Helper extraction, renaming, arbitrary restructuring, "AI-suggested" rewrites, type checking, universal semantic AST, generic codemod framework, performance work beyond the 2 MiB/1,024-edit bounds, additional languages before current backends justify them, and optimizing any complexity score.
+
+## Milestones
+
+| # | Milestone | Exit criteria |
+|---|---|---|
+| 1 | Idiomatic guard output | `not (x)` → `not x` where safe; fixtures for precedence cases; README example updated |
+| 2 | Verify plugin landscape | SonarJS (and top plugins) checked for guard fixes; docs table updated with findings |
+| 3 | JS shared-tail | Ported with Node execution regressions; two-language rule parity |
+| 4 | TS backend | Parser wired, rules 1:1, TS corpus smoke pass, native tests green |
+| 5 | Real-target pass | Fresh clones, current binary, before/after suites green, diff inspected; findings documented |
+| 6 | Release decision | With 1–4 done, revisit license question and distribution with the user |
+
+Milestones 1–2 are small and unlock the highest-value gap; 3 multiplies the distinctive rule; 4 extends reach; 5 replaces retired evidence with current truth; 6 is a user decision, not development.
+
+## Dependency and review posture
+
+Keep `tree-sitter`, grammars, `usage-rs`, `ignore`, `similar`, `tempfile`, `anyhow`. Learn from Ruff's rule/semantic infrastructure externally; embed specific internals only for a concrete benefit. Ruff's Rust interfaces are unstable — a decision to borrow must survive a version bump.
+
+`docs/REVIEW.md` retains the verified safety fixes (declaration-order, local-slot/finalizer-order, form-feed, symlink-path, comment handling) and `docs/RULES.md` the per-rule safety contracts; `docs/BUILD_LOG.md` the build evidence. Both document the engine's history and known limits and stay. Post-hackathon safety work continues the same policy: any new rewrite class ships with the same fixture coverage and real-target pass, and existing guarantees (reparse, convergence, comment multiset, refusal on failed check) are never traded for coverage.
+
+## Source and license
+
+Source is public but has no project license yet. Do not choose a license or call it open source without the user's decision. When a license is chosen, review third-party license implications of the tree-sitter grammars and any borrowed code before publishing releases.

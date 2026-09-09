@@ -1,5 +1,7 @@
 # Correctness and code-quality review
 
+> Provenance note (September 9): the `demo/` paths and removed docs referenced below (`MIXED_EXAMPLE.md`, `SELECTED_EXAMPLE.md`, `demo/run_cpython.py`) were retired after the hackathon; they are retrievable from Git history at commit `a4a02ad`.
+
 September 8, 2026. Reviewed implementation `8d055d3` (engine unchanged since `f573755`). This review supersedes any implication that a passing argparse demonstration establishes general readiness. **No feature freeze is in force. Recording remains paused at the user's request.** No formatter implementation was changed during the initial review. The follow-up fixes are now in `6629139` and `8cf6242`. The original findings below remain as provenance; the final section records their resolution, the additional audit findings, and the new six-application result.
 
 ## Two-language follow-up, implementation `202dc47`

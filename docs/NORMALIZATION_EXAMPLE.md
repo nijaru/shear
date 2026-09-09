@@ -1,5 +1,7 @@
 # Shared continuation after existing autofixes
 
+> Provenance note (September 9): the `demo/` evidence paths and harness scripts referenced below were retired after the hackathon; the referenced patches are retrievable from Git history at commit `a4a02ad`.
+
 CPython `Lib/locale.py`, revision `823f0323ee6ec1402088b73bce1a38473cac36dc` (v3.14.7), contains duplicated padding cleanup at the end of the decimal and integer branches in `_localize`. Shear retains each branch's distinct work and moves that cleanup into a shared continuation.
 
 ## Checked comparison

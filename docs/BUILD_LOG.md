@@ -1,5 +1,7 @@
 # Build evidence — September 8, 2026
 
+> Provenance note (September 9): this is a historical record of the hackathon build. The `demo/`, `scripts/`, and `/private/tmp` artifacts it references were retired after the event; scripts and evidence are retrievable from Git history at commit `a4a02ad`. The smoke-recording instructions at the bottom are not active plans.
+
 This records actual local results, separately from the roadmap. Times are Pacific. CPython argparse is now selected with upstream module tests passing; the final video is not complete. Earlier entries below retain their original evidence limits.
 
 ## Two-language implementation and preparation, from 14:39
