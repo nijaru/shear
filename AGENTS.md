@@ -6,7 +6,7 @@ Shear is a deterministic, local/offline, cross-language structural formatter. It
 
 Use Rust and tree-sitter. The implementation language does not determine supported source languages. Start with thoroughly tested language-specific control-flow rules; add languages only with corresponding safety coverage. Tree-sitter supplies syntax, not semantic equivalence.
 
-Read `docs/HANDOFF.md` for the current architecture and roadmap. Its differentiation strategy is evidence-based: claims about existing-tool gaps must be verified against the current Ruff/ESLint versions before being recorded.
+Read `docs/ARCHITECTURE.md` for the design and engine guarantees, and `docs/ROADMAP.md` for direction. The roadmap's differentiation claims are evidence-based: verify gaps against the current Ruff/ESLint versions before recording them.
 
 ## Implementation
 

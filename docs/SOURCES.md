@@ -1,15 +1,13 @@
 # Sources and provenance
 
-## Product authority
+## Product constraints
 
-The user supplied the original `structural-formatter-handoff.md` and explicitly clarified the current product during September 8 development:
+The product was defined during September 8, 2026 development:
 
 - Deterministic, local, cross-language structural formatting.
-- Astra develops and invokes Shear; no inference inside Shear.
-- Rust + tree-sitter, with source-language choice independent of implementation language.
+- Astra and other agents develop and invoke Shear; no inference runs inside Shear.
+- Rust + tree-sitter, with source-language choice independent of the implementation language.
 - Transformation is the product; metrics support it, not replace it.
-
-The early repository handoff mistakenly recast this as Go plus runtime model proposals. Git history preserves that planning; it is superseded, not implementation evidence. An uncommitted Go prototype was set aside before the Rust implementation.
 
 ## Technical references
 
@@ -25,18 +23,9 @@ The early repository handoff mistakenly recast this as Go plus runtime model pro
 - OpenRewrite: https://github.com/openrewrite/rewrite
 - ast-grep: https://github.com/ast-grep/ast-grep
 - Ripwire analysis reference from the original concept: https://github.com/redhat-et/ripwire
-- FFmpeg: https://ffmpeg.org/ffmpeg.html
-- ffprobe: https://ffmpeg.org/ffprobe.html
-- VHS: https://github.com/charmbracelet/vhs
 
-References establish capabilities or comparison targets, not Shear correctness or novelty. `Cargo.lock` records selected versions; source/tests and `BUILD_LOG.md` record actual implementation evidence.
+References establish capabilities or comparison targets, not Shear correctness or novelty. `Cargo.lock` records selected versions; source and tests record actual implementation evidence.
 
-## Event basis
+## Attribution
 
-The user-provided participant guide supplies the September 8, 2026 Pacific schedule: hacking 10:30 AM–5:30 PM, public repository and accessible one-minute video, four equally weighted categories (Astra in development, Astra in project, live demo, technical implementation), and five finalists with three-minute demos plus two-minute questions. Its stage schedule lists both 6:45 and 7:00 PM; confirm separately.
-
-Public event reference: https://cerebralvalley.ai/e/openai-gpt-6-astra-sf . This document does not claim independent verification of the guide or that agent invocation alone satisfies the organizers' “Astra in project” criterion. Do not distort the product to guess at that criterion; clarify with organizers if needed. Private access details are not publication material.
-
-## Evidence not yet established
-
-The checked CPython example is documented independently in `SELECTED_EXAMPLE.md`; the actual Python/JavaScript invocation is documented in `MIXED_EXAMPLE.md`. Upstream notices are retained in `demo/evidence/cpython/` and `demo/evidence/path-browserify/`. The JavaScript source is pinned to https://github.com/browserify/path-browserify/commit/872fec31a8bac7b9b43be0e54ef3037e0202c5fb and identifies its Node v8.11.1/Babel origin. These checks establish the recorded results, not equal rule coverage across languages, speed superiority, exhaustive equivalence, a final video, or submission. Preserve upstream attribution and licenses in published excerpts; do not claim a Shear license absent an explicit choice.
+Published excerpts of upstream projects retain their licenses and notices. The JavaScript comparison input was pinned to https://github.com/browserify/path-browserify/commit/872fec31a8bac7b9b43be0e54ef3037e0202c5fb, which identifies its Node v8.11.1/Babel origin. Do not claim a Shear license absent an explicit choice.
